@@ -20,13 +20,14 @@ export default function AnalyticsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
-  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
-  const { data: performance, isLoading: perfLoading } = useGetPerformanceData();
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useGetDashboardStats();
+  const { data: performance, isLoading: perfLoading, isError: perfError } = useGetPerformanceData();
 
   const isLoading = statsLoading || perfLoading;
+  const hasError = statsError || perfError;
 
-  const maxPnl = performance
-    ? Math.max(...performance.map((p) => Math.abs(p.avgPnl ?? 0)), 1)
+  const maxPnl = performance?.length
+    ? Math.max(...performance.map((p) => Math.abs(p.totalPnlPercent ?? 0)), 1)
     : 1;
 
   return (
@@ -44,94 +45,46 @@ export default function AnalyticsScreen() {
 
       {isLoading ? (
         <ActivityIndicator color={colors.primary} size="large" style={styles.loader} />
+      ) : hasError ? (
+        <View style={[styles.empty, { borderColor: colors.border }]}> 
+          <Feather name="alert-triangle" size={36} color={colors.negative} />
+          <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Analytics are temporarily unavailable</Text>
+        </View>
       ) : (
         <>
-          {stats && (
+          {stats ? (
             <View style={styles.grid}>
-              <StatBlock
-                label="Total Trades"
-                value={String(stats.totalRecommendations)}
-                icon="bar-chart-2"
-                colors={colors}
-                accent
-              />
-              <StatBlock
-                label="Win Rate"
-                value={`${stats.winRate?.toFixed(1) ?? 0}%`}
-                icon="trending-up"
-                colors={colors}
-                positive
-              />
-              <StatBlock
-                label="Avg P&L"
-                value={`${(stats.avgPnl ?? 0) >= 0 ? "+" : ""}${stats.avgPnl?.toFixed(2) ?? "0"}%`}
-                icon="percent"
-                colors={colors}
-                positive={(stats.avgPnl ?? 0) >= 0}
-                negative={(stats.avgPnl ?? 0) < 0}
-              />
-              <StatBlock
-                label="Active"
-                value={String(stats.activeCount ?? 0)}
-                icon="activity"
-                colors={colors}
-              />
-              <StatBlock
-                label="Target Hit"
-                value={String(stats.targetHitCount ?? 0)}
-                icon="check-circle"
-                colors={colors}
-                positive
-              />
-              <StatBlock
-                label="Stop Loss"
-                value={String(stats.stopLossCount ?? 0)}
-                icon="x-circle"
-                colors={colors}
-                negative
-              />
+              <StatBlock label="Total Trades" value={String(stats.totalTrades ?? 0)} icon="bar-chart-2" colors={colors} accent />
+              <StatBlock label="Win Rate" value={`${stats.winRate?.toFixed(1) ?? 0}%`} icon="trending-up" colors={colors} positive />
+              <StatBlock label="Avg P&L" value={`${(stats.monthlyProfitPercent ?? 0) >= 0 ? "+" : ""}${stats.monthlyProfitPercent?.toFixed(2) ?? "0"}%`} icon="percent" colors={colors} positive={(stats.monthlyProfitPercent ?? 0) >= 0} negative={(stats.monthlyProfitPercent ?? 0) < 0} />
+              <StatBlock label="Active" value={String(stats.todayRecommendationsCount ?? 0)} icon="activity" colors={colors} />
+              <StatBlock label="Trial" value={String(stats.trialDaysRemaining ?? 0)} icon="clock" colors={colors} />
+              <StatBlock label="Premium" value={String(stats.premiumDaysRemaining ?? 0)} icon="award" colors={colors} positive />
             </View>
-          )}
+          ) : null}
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Monthly Performance
-            </Text>
-            <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>
-              Average P&L % per month
-            </Text>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Monthly Performance</Text>
+            <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>Average P&L % per month</Text>
 
             {!performance || performance.length === 0 ? (
-              <View style={[styles.empty, { borderColor: colors.border }]}>
+              <View style={[styles.empty, { borderColor: colors.border }]}> 
                 <Feather name="bar-chart" size={36} color={colors.mutedForeground} />
-                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                  Performance data will appear after the first month
-                </Text>
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Performance data will appear after the first month</Text>
               </View>
             ) : (
-              <View style={[styles.chart, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.chart, { backgroundColor: colors.card, borderColor: colors.border }]}> 
                 {performance.slice(-12).map((p, i) => {
-                  const pnl = p.avgPnl ?? 0;
+                  const pnl = p.totalPnlPercent ?? 0;
                   const positive = pnl >= 0;
                   const barHeight = Math.max(4, (Math.abs(pnl) / maxPnl) * 80);
                   return (
                     <View key={i} style={styles.barGroup}>
-                      <Text
-                        style={[styles.barValue, { color: positive ? colors.positive : colors.negative }]}
-                        numberOfLines={1}
-                      >
+                      <Text style={[styles.barValue, { color: positive ? colors.positive : colors.negative }]} numberOfLines={1}>
                         {positive ? "+" : ""}{pnl.toFixed(1)}%
                       </Text>
                       <View style={styles.barContainer}>
-                        <View
-                          style={[
-                            styles.bar,
-                            {
-                              height: barHeight,
-                              backgroundColor: positive ? colors.positive : colors.negative,
-                            },
-                          ]}
-                        />
+                        <View style={[styles.bar, { height: barHeight, backgroundColor: positive ? colors.positive : colors.negative }]} />
                       </View>
                       <Text style={[styles.barLabel, { color: colors.mutedForeground }]}>
                         {p.month?.slice(5) ?? ""}
@@ -148,40 +101,13 @@ export default function AnalyticsScreen() {
   );
 }
 
-function StatBlock({
-  label,
-  value,
-  icon,
-  colors,
-  positive,
-  negative,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: string;
-  colors: ReturnType<typeof import("@/hooks/useColors").useColors>;
-  positive?: boolean;
-  negative?: boolean;
-  accent?: boolean;
-}) {
-  const valueColor = positive
-    ? colors.positive
-    : negative
-      ? colors.negative
-      : accent
-        ? colors.primary
-        : colors.foreground;
+function StatBlock({ label, value, icon, colors, positive, negative, accent }: { label: string; value: string; icon: string; colors: ReturnType<typeof import("@/hooks/useColors").useColors>; positive?: boolean; negative?: boolean; accent?: boolean; }) {
+  const valueColor = positive ? colors.positive : negative ? colors.negative : accent ? colors.primary : colors.foreground;
 
   return (
-    <View
-      style={[
-        styles.statBlock,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
-    >
-      <View style={[styles.statIcon, { backgroundColor: valueColor + "22" }]}>
-        <Feather name={icon as "activity"} size={16} color={valueColor} />
+    <View style={[styles.statBlock, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+      <View style={[styles.statIcon, { backgroundColor: valueColor + "22" }]}> 
+        <Feather name={icon as any} size={16} color={valueColor} />
       </View>
       <Text style={[styles.statValue, { color: valueColor }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{label}</Text>
