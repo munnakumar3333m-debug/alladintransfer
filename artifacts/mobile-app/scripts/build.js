@@ -258,15 +258,15 @@ async function downloadFile(url, outputPath) {
   }
 }
 
-async function downloadBundle(platform, timestamp) {
-  const metroPort = Number(process.env.EXPO_METRO_PORT || "8081");
-  const url = new URL(`http://localhost:${metroPort}/index.bundle`);
+async function downloadBundle(platform, timestamp, metroPort) {
+  const url = new URL(`http://127.0.0.1:${metroPort}/index.bundle`);
   url.searchParams.set("platform", platform);
   url.searchParams.set("dev", "false");
   url.searchParams.set("hot", "false");
   url.searchParams.set("lazy", "false");
   url.searchParams.set("minify", "true");
   url.searchParams.set("routerRoot", "app");
+  url.searchParams.set("transform.engine", "hermes");
 
   const output = path.join(
     "static-build",
@@ -283,14 +283,13 @@ async function downloadBundle(platform, timestamp) {
   console.log(`${platform} bundle ready`);
 }
 
-async function downloadManifest(platform) {
+async function downloadManifest(platform, metroPort) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 300_000);
 
   try {
     console.log(`Fetching ${platform} manifest...`);
-    const metroPort = Number(process.env.EXPO_METRO_PORT || "8081");
-    const response = await fetch(`http://localhost:${metroPort}/manifest`, {
+    const response = await fetch(`http://127.0.0.1:${metroPort}/manifest`, {
       headers: { "expo-platform": platform },
       signal: controller.signal,
     });
@@ -358,8 +357,7 @@ function extractAssets(timestamp) {
       const originalPath = match[1];
       const filename = match[3] + "." + match[4];
 
-      const metroPort = Number(process.env.EXPO_METRO_PORT || "8081");
-      const tempUrl = new URL(`http://localhost:${metroPort}${originalPath}`);
+      const tempUrl = new URL(`http://127.0.0.1:${metroPort}${originalPath}`);
       const unstablePath = tempUrl.searchParams.get("unstable_path");
 
       if (!unstablePath) {
@@ -401,8 +399,7 @@ async function downloadAssets(assets, timestamp) {
   const failures = [];
 
   const downloadPromises = assets.map(async (asset) => {
-    const metroPort = Number(process.env.EXPO_METRO_PORT || "8081");
-    const tempUrl = new URL(`http://localhost:${metroPort}${asset.originalPath}`);
+    const tempUrl = new URL(`http://127.0.0.1:${metroPort}${asset.originalPath}`);
     const unstablePath = tempUrl.searchParams.get("unstable_path");
 
     if (!unstablePath) {
@@ -475,8 +472,7 @@ function updateBundleUrls(timestamp, baseUrl) {
     bundle = bundle.replace(
       /httpServerLocation:"(\/[^"]+)"/g,
       (_match, capturedPath) => {
-        const metroPort = Number(process.env.EXPO_METRO_PORT || "8081");
-        const tempUrl = new URL(`http://localhost:${metroPort}${capturedPath}`);
+        const tempUrl = new URL(`http://127.0.0.1:${metroPort}${capturedPath}`);
         const unstablePath = tempUrl.searchParams.get("unstable_path");
 
         if (!unstablePath) {
