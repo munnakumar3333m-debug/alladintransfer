@@ -53,7 +53,7 @@ export default function HistoryScreen() {
           },
         ]}
       >
-        <Text style={[styles.title, { color: colors.foreground }]}>History</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>Trade History</Text>
 
         <View style={styles.filterRow}>
           {FILTERS.map((f) => (
