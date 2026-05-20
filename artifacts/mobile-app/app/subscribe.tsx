@@ -1,11 +1,10 @@
 import { Feather } from "@expo/vector-icons";
-import {
-  useCreatePaymentOrder,
-  useGetSubscriptionStatus,
-} from "@workspace/api-client-react";
+import { useGetSubscriptionStatus } from "@workspace/api-client-react";
+import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Alert,
   Platform,
@@ -19,42 +18,47 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 
-const FEATURES = [
-  "Daily stock recommendations (intraday, swing & positional)",
-  "Evening P&L updates on all recommendations",
-  "Monthly performance analytics & charts",
-  "Real-time market insights & notes",
-  "WhatsApp & push notification alerts",
-  "Priority customer support",
-];
+const UPI_ID = "8429054622@ptaxis";
+const UPI_AMOUNT = 800;
+const MERCHANT_NAME = "AlphaTrade Pro";
+const UPI_URL = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${UPI_AMOUNT}&cu=INR`;
 
 export default function SubscribeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-
   const { data: sub } = useGetSubscriptionStatus();
-  const { mutate: createOrder, isPending } = useCreatePaymentOrder({
-    mutation: {
-      onSuccess: (data) => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert(
-          "Payment Integration",
-          `Razorpay order created!\n\nOrder ID: ${data.orderId}\nAmount: ₹${(data.amount / 100).toFixed(0)}\n\n(Razorpay payment sheet would open here in production)`,
-          [{ text: "OK" }]
-        );
-      },
-      onError: () => {
-        Alert.alert("Error", "Could not create payment order. Please try again.");
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      },
-    },
-  });
 
-  const isExpired = sub?.type === "expired";
+  const expiryText = useMemo(() => {
+    if (sub?.type === "premium") return "Your premium is active. Renew to extend by 30 days.";
+    if (sub?.type === "trial") return "Your trial is active. Pay now to continue without interruption.";
+    return "Your subscription has expired. Renew to regain access.";
+  }, [sub?.type]);
+
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(UPI_ID);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Copied", "UPI ID copied to clipboard");
+  };
+
+  const handlePay = async () => {
+    try {
+      await Linking.openURL(UPI_URL);
+    } catch {
+      Alert.alert("Error", "No UPI app found on this device.");
+    }
+  };
+
+  const handlePaid = () => {
+    Alert.alert(
+      "Payment submitted",
+      "The payment will be verified by the admin and your subscription will be extended by 30 days after approval.",
+      [{ text: "OK" }]
+    );
+  };
 
   return (
-    <View style={[styles.flex, { backgroundColor: colors.background }]}>
+    <View style={[styles.flex, { backgroundColor: colors.background }]}> 
       <View
         style={[
           styles.navBar,
@@ -68,7 +72,7 @@ export default function SubscribeScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="x" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.foreground }]}>Premium</Text>
+        <Text style={[styles.navTitle, { color: colors.foreground }]}>Subscription Renewal</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -79,42 +83,53 @@ export default function SubscribeScreen() {
         ]}
       >
         <View style={styles.heroSection}>
-          <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}>
-            <Feather name="zap" size={36} color={colors.primaryForeground} />
+          <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}> 
+            <Feather name="credit-card" size={34} color={colors.primaryForeground} />
           </View>
-          <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            Alladin
-          </Text>
-          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
-            {isExpired
-              ? "Your subscription has expired. Renew to regain access."
-              : "Upgrade to premium and unlock all stock picks"}
-          </Text>
+          <Text style={[styles.heroTitle, { color: colors.foreground }]}>UPI Renewal</Text>
+          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>{expiryText}</Text>
         </View>
 
         <View style={[styles.priceCard, { backgroundColor: colors.card, borderColor: colors.primary + "66" }]}>
+          <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>Subscription price</Text>
           <View style={styles.priceRow}>
             <Text style={[styles.currency, { color: colors.primary }]}>₹</Text>
-            <Text style={[styles.price, { color: colors.foreground }]}>2,000</Text>
-            <Text style={[styles.period, { color: colors.mutedForeground }]}>/month</Text>
+            <Text style={[styles.price, { color: colors.foreground }]}>800</Text>
+            <Text style={[styles.period, { color: colors.mutedForeground }]}>/ 30 days</Text>
           </View>
-          <Text style={[styles.priceSub, { color: colors.mutedForeground }]}>
-            No hidden charges · Cancel anytime
-          </Text>
+          <Text style={[styles.priceSub, { color: colors.mutedForeground }]}>Only UPI supported · Instant renewal after approval</Text>
         </View>
 
-        <View style={styles.features}>
-          <Text style={[styles.featuresTitle, { color: colors.foreground }]}>
-            Everything included
-          </Text>
-          {FEATURES.map((f, i) => (
-            <View key={i} style={styles.featureRow}>
-              <View style={[styles.checkIcon, { backgroundColor: colors.positive + "22" }]}>
-                <Feather name="check" size={12} color={colors.positive} />
-              </View>
-              <Text style={[styles.featureText, { color: colors.foreground }]}>{f}</Text>
+        <View style={[styles.upiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Pay using UPI</Text>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Merchant Name</Text>
+          <Text style={[styles.upiValue, { color: colors.foreground }]}>{MERCHANT_NAME}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, marginTop: 10 }]}>UPI ID</Text>
+          <View style={styles.upiRow}>
+            <Text style={[styles.upiValue, { color: colors.foreground }]}>{UPI_ID}</Text>
+            <TouchableOpacity style={[styles.copyBtn, { borderColor: colors.primary + "55" }]} onPress={handleCopy}>
+              <Feather name="copy" size={14} color={colors.primary} />
+              <Text style={[styles.copyBtnText, { color: colors.primary }]}>Copy UPI ID</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.fakeQrWrap, { backgroundColor: colors.background, borderColor: colors.border }]}> 
+            <View style={styles.fakeQrGrid}>
+              {Array.from({ length: 64 }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.fakeQrCell,
+                    {
+                      backgroundColor: i % 3 === 0 || i % 5 === 0 ? colors.foreground : colors.background,
+                    },
+                  ]}
+                />
+              ))}
             </View>
-          ))}
+            <Text style={[styles.fakeQrText, { color: colors.foreground }]}>Scan to pay</Text>
+          </View>
+          <Text style={[styles.qrCaption, { color: colors.mutedForeground }]}>Scan QR in any UPI app</Text>
         </View>
       </ScrollView>
 
@@ -129,22 +144,18 @@ export default function SubscribeScreen() {
         ]}
       >
         <TouchableOpacity
-          style={[
-            styles.payBtn,
-            { backgroundColor: colors.primary, opacity: isPending ? 0.7 : 1 },
-          ]}
-          onPress={() => createOrder({})}
+          style={[styles.payBtn, { backgroundColor: colors.primary }]}
+          onPress={handlePay}
           activeOpacity={0.85}
-          disabled={isPending}
         >
-          <Feather name="credit-card" size={18} color={colors.primaryForeground} />
-          <Text style={[styles.payBtnText, { color: colors.primaryForeground }]}>
-            {isPending ? "Processing..." : "Pay ₹2,000 via Razorpay"}
-          </Text>
+          <Feather name="smartphone" size={18} color={colors.primaryForeground} />
+          <Text style={[styles.payBtnText, { color: colors.primaryForeground }]}>Make Payment</Text>
         </TouchableOpacity>
-        <Text style={[styles.footerSub, { color: colors.mutedForeground }]}>
-          Secured by Razorpay · UPI, Cards, Netbanking
-        </Text>
+        <TouchableOpacity style={[styles.paidBtn, { borderColor: colors.border }]} onPress={handlePaid} activeOpacity={0.85}>
+          <Feather name="check-circle" size={18} color={colors.foreground} />
+          <Text style={[styles.paidBtnText, { color: colors.foreground }]}>I have paid</Text>
+        </TouchableOpacity>
+        <Text style={[styles.footerSub, { color: colors.mutedForeground }]}>Payment verification is handled securely by the admin team</Text>
       </View>
     </View>
   );
@@ -201,10 +212,16 @@ const styles = StyleSheet.create({
   },
   priceCard: {
     borderRadius: 18,
-    padding: 24,
+    padding: 22,
     borderWidth: 2,
     alignItems: "center",
-    gap: 8,
+    gap: 6,
+  },
+  priceLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   priceRow: {
     flexDirection: "row",
@@ -232,34 +249,80 @@ const styles = StyleSheet.create({
   priceSub: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
+    textAlign: "center",
   },
-  features: {
-    gap: 14,
+  upiCard: {
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    gap: 8,
   },
-  featuresTitle: {
+  sectionTitle: {
     fontSize: 17,
-    fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
     marginBottom: 4,
   },
-  featureRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
+  sectionLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
   },
-  checkIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  upiValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  upiRow: {
+    gap: 10,
+  },
+  copyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  copyBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  fakeQrWrap: {
+    alignSelf: "center",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 1,
   },
-  featureText: {
-    flex: 1,
-    fontSize: 14,
+  fakeQrGrid: {
+    width: 170,
+    height: 170,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    borderWidth: 8,
+    borderColor: "#fff",
+  },
+  fakeQrCell: {
+    width: 17,
+    height: 17,
+  },
+  fakeQrText: {
+    position: "absolute",
+    fontSize: 16,
+    fontWeight: "800",
+    fontFamily: "Inter_700Bold",
+  },
+  qrCaption: {
+    textAlign: "center",
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
-    lineHeight: 22,
   },
   footer: {
     padding: 16,
@@ -278,6 +341,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
+  },
+  paidBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  paidBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   footerSub: {
     textAlign: "center",

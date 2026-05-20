@@ -26,7 +26,6 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [extendId, setExtendId] = useState<number | null>(null);
 
   const { data, isLoading, refetch } = useAdminListUsers({
     page,
@@ -39,10 +38,19 @@ export default function UsersPage() {
     mutation: {
       onSuccess: () => {
         refetch();
-        setExtendId(null);
       },
     },
   });
+
+  const approvePayment = async (userId: number) => {
+    const res = await fetch("/api/payments/admin-approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    if (!res.ok) throw new Error("Approval failed");
+    await refetch();
+  };
 
   const users = data?.users ?? [];
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
@@ -117,7 +125,7 @@ export default function UsersPage() {
                       {new Date(u.createdAt).toLocaleDateString("en-IN")}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => updateUser({ id: u.id, data: { isBlocked: !u.isBlocked } })}
                           title={u.isBlocked ? "Unblock" : "Block"}
@@ -130,7 +138,7 @@ export default function UsersPage() {
                           {u.isBlocked ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const days = parseInt(prompt("Extend by how many days?", "30") ?? "0");
                             if (days > 0) {
                               updateUser({ id: u.id, data: { extendDays: days } });
@@ -140,6 +148,16 @@ export default function UsersPage() {
                           className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-500/10 transition-colors"
                         >
                           <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm("Approve UPI payment and extend subscription by 30 days?")) {
+                              await approvePayment(u.id);
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Verify UPI Payment
                         </button>
                       </div>
                     </td>
