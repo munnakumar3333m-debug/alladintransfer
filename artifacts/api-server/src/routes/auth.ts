@@ -19,6 +19,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
   const { name, phone, email, password } = parsed.data;
+  const referralCode = (req.body as { referralCode?: string }).referralCode as string | undefined;
 
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.phone, phone));
   if (existing) {
@@ -26,9 +27,30 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
 
+  // Validate referral code before creating user
+  let referrerId: number | undefined;
+  if (referralCode) {
+    const [referrer] = await db.select().from(usersTable)
+      .where(eq(usersTable.referralCode, referralCode.toUpperCase().trim()));
+    if (referrer) referrerId = referrer.id;
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
   const trialStart = new Date();
   const trialExpiry = new Date(trialStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  // Generate a unique referral code for the new user
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let newUserCode = "";
+  let codeIsUnique = false;
+  while (!codeIsUnique) {
+    let suffix = "";
+    for (let i = 0; i < 4; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+    newUserCode = "REF" + suffix + suffix.split("").reverse().join("").slice(0, 4);
+    const [clash] = await db.select({ id: usersTable.id }).from(usersTable)
+      .where(eq(usersTable.referralCode, newUserCode));
+    if (!clash) codeIsUnique = true;
+  }
 
   const [user] = await db.insert(usersTable).values({
     name,
@@ -38,7 +60,20 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     subscriptionType: "trial",
     trialStartDate: trialStart,
     trialExpiryDate: trialExpiry,
+    referralCode: newUserCode,
+    referredBy: referrerId ?? null,
   }).returning();
+
+  // Create pending referral record if they used a code
+  if (referrerId) {
+    const { referralsTable } = await import("@workspace/db");
+    await db.insert(referralsTable).values({
+      referrerId,
+      referredId: user.id,
+      status: "pending",
+      rewardDays: 30,
+    });
+  }
 
   const token = signToken({ userId: user.id, isAdmin: user.isAdmin });
 

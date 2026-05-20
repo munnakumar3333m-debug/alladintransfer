@@ -7,6 +7,7 @@ import adminRouter from "./admin";
 import paymentsRouter from "./payments";
 import notificationsRouter from "./notifications";
 import subscriptionsRouter from "./subscriptions";
+import referralsRouter from "./referrals";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(adminRouter);
 router.use(paymentsRouter);
 router.use(notificationsRouter);
 router.use(subscriptionsRouter);
+router.use(referralsRouter);
 
 export default router;

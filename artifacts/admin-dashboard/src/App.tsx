@@ -11,6 +11,7 @@ import UsersPage from "@/pages/users";
 import RecommendationsPage from "@/pages/recommendations";
 import AnalyticsPage from "@/pages/analytics";
 import NotificationsPage from "@/pages/notifications";
+import ReferralsPage from "@/pages/referrals";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -64,6 +65,13 @@ function Router() {
         {() => (
           <ProtectedLayout>
             <NotificationsPage />
+          </ProtectedLayout>
+        )}
+      </Route>
+      <Route path="/referrals">
+        {() => (
+          <ProtectedLayout>
+            <ReferralsPage />
           </ProtectedLayout>
         )}
       </Route>

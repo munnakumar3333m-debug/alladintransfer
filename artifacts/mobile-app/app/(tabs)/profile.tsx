@@ -1,15 +1,18 @@
 import { Feather } from "@expo/vector-icons";
 import {
   useGetMe,
+  useGetMyReferralStats,
+  useGetMyReferrals,
   useGetPaymentHistory,
   useGetSubscriptionStatus,
 } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Platform,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -25,10 +28,28 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { logout } = useAuth();
+  const [copied, setCopied] = useState(false);
 
   const { data: user } = useGetMe();
   const { data: sub } = useGetSubscriptionStatus();
   const { data: payments } = useGetPaymentHistory();
+  const { data: referralStats } = useGetMyReferralStats();
+  const { data: myReferrals } = useGetMyReferrals();
+
+  const handleCopyCode = async () => {
+    if (!referralStats?.code) return;
+    if (Platform.OS === "web") {
+      try {
+        await navigator.clipboard.writeText(referralStats.code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        Alert.alert("Your code", referralStats.code);
+      }
+    } else {
+      await Share.share({ message: `Use my referral code ${referralStats.code} to get 30 free days on Alladin!` });
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -170,6 +191,82 @@ export default function ProfileScreen() {
         </View>
       )}
 
+      {/* Referral Card */}
+      <View style={[styles.referralCard, { backgroundColor: colors.card, borderColor: colors.primary + "44" }]}>
+        <View style={styles.referralHeader}>
+          <View style={[styles.referralIconWrap, { backgroundColor: colors.primary + "22" }]}>
+            <Feather name="gift" size={18} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Invite Friends, Earn Free Days</Text>
+            <Text style={[styles.referralSub, { color: colors.mutedForeground }]}>
+              Get 30 free premium days for every friend who subscribes
+            </Text>
+          </View>
+        </View>
+
+        {referralStats ? (
+          <>
+            <TouchableOpacity
+              style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]}
+              onPress={handleCopyCode}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.codeText, { color: colors.primary }]}>{referralStats.code}</Text>
+              <View style={[styles.copyBtn, { backgroundColor: copied ? colors.primary : colors.primary + "22" }]}>
+                <Feather name={copied ? "check" : "copy"} size={14} color={copied ? colors.primaryForeground : colors.primary} />
+                <Text style={[styles.copyBtnText, { color: copied ? colors.primaryForeground : colors.primary }]}>
+                  {copied ? "Copied!" : "Copy"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.referralStats}>
+              <ReferralStat label="Total" value={referralStats.totalReferrals} colors={colors} />
+              <ReferralStat label="Rewarded" value={referralStats.rewardedReferrals} colors={colors} highlight />
+              <ReferralStat label="Pending" value={referralStats.pendingReferrals} colors={colors} />
+              <ReferralStat label="Days Earned" value={`${referralStats.totalDaysEarned}d`} colors={colors} />
+            </View>
+
+            {myReferrals && myReferrals.length > 0 && (
+              <View style={{ gap: 8, marginTop: 4 }}>
+                <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>Your referrals</Text>
+                {myReferrals.slice(0, 3).map((r) => (
+                  <View key={r.id} style={[styles.referralRow, { borderColor: colors.border }]}>
+                    <View style={[styles.refAvatar, { backgroundColor: colors.primary + "22" }]}>
+                      <Text style={[styles.refAvatarText, { color: colors.primary }]}>
+                        {r.referredName[0].toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.refName, { color: colors.foreground }]}>{r.referredName}</Text>
+                      <Text style={[styles.refDate, { color: colors.mutedForeground }]}>
+                        {new Date(r.createdAt).toLocaleDateString("en-IN")}
+                      </Text>
+                    </View>
+                    <View style={[
+                      styles.refStatus,
+                      { backgroundColor: r.status === "rewarded" ? colors.positive + "22" : colors.warning + "22" }
+                    ]}>
+                      <Text style={[
+                        styles.refStatusText,
+                        { color: r.status === "rewarded" ? colors.positive : colors.warning }
+                      ]}>
+                        {r.status === "rewarded" ? "+30d" : "Pending"}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <Text style={[styles.codeText, { color: colors.mutedForeground }]}>Loading code...</Text>
+          </View>
+        )}
+      </View>
+
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Account</Text>
         <TouchableOpacity
@@ -187,6 +284,29 @@ export default function ProfileScreen() {
         Alladin v1.0
       </Text>
     </ScrollView>
+  );
+}
+
+function ReferralStat({
+  label,
+  value,
+  colors,
+  highlight,
+}: {
+  label: string;
+  value: string | number;
+  colors: ReturnType<typeof import("@/hooks/useColors").useColors>;
+  highlight?: boolean;
+}) {
+  return (
+    <View style={{ flex: 1, alignItems: "center" }}>
+      <Text style={{ fontSize: 18, fontWeight: "700", fontFamily: "Inter_700Bold", color: highlight ? colors.primary : colors.foreground }}>
+        {value}
+      </Text>
+      <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 2 }}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -338,6 +458,111 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
   },
   menuArrow: { marginLeft: "auto" },
+  referralCard: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  referralHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  referralIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  referralTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  referralSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+    lineHeight: 17,
+  },
+  codeBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  codeText: {
+    fontSize: 18,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 2,
+  },
+  copyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  copyBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  referralStats: {
+    flexDirection: "row",
+    paddingVertical: 4,
+  },
+  referralSubtitle: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  referralRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  refAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  refAvatarText: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  refName: {
+    fontSize: 13,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  refDate: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+  },
+  refStatus: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  refStatusText: {
+    fontSize: 11,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
   version: {
     textAlign: "center",
     fontSize: 12,

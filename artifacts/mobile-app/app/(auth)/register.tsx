@@ -29,6 +29,7 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,7 +56,7 @@ export default function RegisterScreen() {
       setError("Password must be at least 6 characters");
       return;
     }
-    mutate({ data: { name, phone, email: email || undefined, password } });
+    mutate({ data: { name, phone, email: email || undefined, password, referralCode: referralCode.trim() || undefined } });
   };
 
   return (
@@ -118,6 +119,13 @@ export default function RegisterScreen() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            colors={colors}
+          />
+          <InputField
+            icon="gift"
+            placeholder="Referral code (optional)"
+            value={referralCode}
+            onChangeText={(v) => setReferralCode(v.toUpperCase())}
             colors={colors}
           />
 

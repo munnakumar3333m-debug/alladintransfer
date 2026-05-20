@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bell,
   ChevronRight,
+  Gift,
   LayoutDashboard,
   LogOut,
   Star,
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/recommendations", label: "Recommendations", icon: Star },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/referrals", label: "Referrals", icon: Gift },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

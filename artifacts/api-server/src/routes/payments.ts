@@ -66,6 +66,35 @@ router.post("/payments/verify", requireAuth, async (req, res): Promise<void> => 
     premiumExpiryDate: premiumExpiry,
   }).where(eq(usersTable.id, req.user!.id));
 
+  // Reward referrer: give them 30 extra days of premium
+  const [payer] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
+  if (payer?.referredBy) {
+    const { referralsTable } = await import("@workspace/db");
+    const [referral] = await db.select().from(referralsTable)
+      .where(eq(referralsTable.referrerId, payer.referredBy));
+
+    if (referral && referral.status === "pending") {
+      const [referrer] = await db.select().from(usersTable).where(eq(usersTable.id, payer.referredBy));
+      if (referrer) {
+        const REWARD_MS = referral.rewardDays * 24 * 60 * 60 * 1000;
+        const baseExpiry =
+          referrer.subscriptionType === "premium" && referrer.premiumExpiryDate && referrer.premiumExpiryDate > now
+            ? referrer.premiumExpiryDate
+            : now;
+        const newExpiry = new Date(baseExpiry.getTime() + REWARD_MS);
+        await db.update(usersTable).set({
+          subscriptionType: "premium",
+          premiumExpiryDate: newExpiry,
+        }).where(eq(usersTable.id, referrer.id));
+
+        await db.update(referralsTable).set({
+          status: "rewarded",
+          rewardedAt: now,
+        }).where(eq(referralsTable.id, referral.id));
+      }
+    }
+  }
+
   res.json(VerifyPaymentResponse.parse({
     subscriptionType: "premium",
     premiumExpiryDate: premiumExpiry.toISOString(),

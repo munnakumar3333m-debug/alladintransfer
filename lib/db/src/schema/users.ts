@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -14,6 +14,8 @@ export const usersTable = pgTable("users", {
   premiumExpiryDate: timestamp("premium_expiry_date", { withTimezone: true }),
   isBlocked: boolean("is_blocked").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
+  referralCode: text("referral_code").unique(),
+  referredBy: integer("referred_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

@@ -320,6 +320,55 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface ReferralStats {
+  code: string;
+  totalReferrals: number;
+  rewardedReferrals: number;
+  pendingReferrals: number;
+  totalDaysEarned: number;
+}
+
+export interface ApplyReferralRequest {
+  code: string;
+}
+
+export type ReferralItemStatus = typeof ReferralItemStatus[keyof typeof ReferralItemStatus];
+
+
+export const ReferralItemStatus = {
+  pending: 'pending',
+  rewarded: 'rewarded',
+} as const;
+
+export interface ReferralItem {
+  id: number;
+  referredName: string;
+  referredPhone: string;
+  status: ReferralItemStatus;
+  rewardDays: number;
+  createdAt: string;
+  rewardedAt?: string | null;
+}
+
+export type AdminReferralItemStatus = typeof AdminReferralItemStatus[keyof typeof AdminReferralItemStatus];
+
+
+export const AdminReferralItemStatus = {
+  pending: 'pending',
+  rewarded: 'rewarded',
+} as const;
+
+export interface AdminReferralItem {
+  id: number;
+  referrerName: string;
+  referrerPhone: string;
+  referredName: string;
+  referredPhone: string;
+  status: AdminReferralItemStatus;
+  rewardDays: number;
+  createdAt: string;
+}
+
 export type ListRecommendationsParams = {
 /**
  * Filter by date (YYYY-MM-DD)

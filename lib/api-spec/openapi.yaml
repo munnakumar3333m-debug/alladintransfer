@@ -28,6 +28,8 @@ tags:
     description: Payment operations
   - name: admin
     description: Admin operations
+  - name: referrals
+    description: Referral system
 
 paths:
   /healthz:
@@ -668,6 +670,83 @@ paths:
                 items:
                   $ref: "#/components/schemas/Notification"
 
+  # ─── REFERRALS ────────────────────────────────────────────────────────────────
+  /referrals/my-code:
+    get:
+      operationId: getMyReferralStats
+      tags: [referrals]
+      summary: Get my referral code and stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Referral stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralStats"
+
+  /referrals/my-referrals:
+    get:
+      operationId: getMyReferrals
+      tags: [referrals]
+      summary: Get list of people I referred
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Referrals list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralItem"
+
+  /referrals/apply:
+    post:
+      operationId: applyReferralCode
+      tags: [referrals]
+      summary: Apply a referral code to my account
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyReferralRequest"
+      responses:
+        "200":
+          description: Referral applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid or already-used code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/referrals:
+    get:
+      operationId: adminListReferrals
+      tags: [admin, referrals]
+      summary: Admin — list all referrals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All referrals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminReferralItem"
+
 # ─── COMPONENTS ──────────────────────────────────────────────────────────────
 components:
   securitySchemes:
@@ -1203,3 +1282,71 @@ components:
           type: string
           format: date-time
       required: [id, title, body, targetType, sentCount, createdAt]
+
+    ReferralStats:
+      type: object
+      properties:
+        code:
+          type: string
+        totalReferrals:
+          type: integer
+        rewardedReferrals:
+          type: integer
+        pendingReferrals:
+          type: integer
+        totalDaysEarned:
+          type: integer
+      required: [code, totalReferrals, rewardedReferrals, pendingReferrals, totalDaysEarned]
+
+    ApplyReferralRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+
+    ReferralItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        referredName:
+          type: string
+        referredPhone:
+          type: string
+        status:
+          type: string
+          enum: [pending, rewarded]
+        rewardDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        rewardedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, referredName, referredPhone, status, rewardDays, createdAt]
+
+    AdminReferralItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        referrerName:
+          type: string
+        referrerPhone:
+          type: string
+        referredName:
+          type: string
+        referredPhone:
+          type: string
+        status:
+          type: string
+          enum: [pending, rewarded]
+        rewardDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, referrerName, referrerPhone, referredName, referredPhone, status, rewardDays, createdAt]

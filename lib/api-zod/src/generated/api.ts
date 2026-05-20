@@ -637,3 +637,58 @@ export const GetNotificationHistoryResponseItem = zod.object({
 export const GetNotificationHistoryResponse = zod.array(GetNotificationHistoryResponseItem)
 
 
+/**
+ * @summary Get my referral code and stats
+ */
+export const GetMyReferralStatsResponse = zod.object({
+  "code": zod.string(),
+  "totalReferrals": zod.number(),
+  "rewardedReferrals": zod.number(),
+  "pendingReferrals": zod.number(),
+  "totalDaysEarned": zod.number()
+})
+
+
+/**
+ * @summary Get list of people I referred
+ */
+export const GetMyReferralsResponseItem = zod.object({
+  "id": zod.number(),
+  "referredName": zod.string(),
+  "referredPhone": zod.string(),
+  "status": zod.enum(['pending', 'rewarded']),
+  "rewardDays": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "rewardedAt": zod.coerce.date().nullish()
+})
+export const GetMyReferralsResponse = zod.array(GetMyReferralsResponseItem)
+
+
+/**
+ * @summary Apply a referral code to my account
+ */
+export const ApplyReferralCodeBody = zod.object({
+  "code": zod.string()
+})
+
+export const ApplyReferralCodeResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Admin — list all referrals
+ */
+export const AdminListReferralsResponseItem = zod.object({
+  "id": zod.number(),
+  "referrerName": zod.string(),
+  "referrerPhone": zod.string(),
+  "referredName": zod.string(),
+  "referredPhone": zod.string(),
+  "status": zod.enum(['pending', 'rewarded']),
+  "rewardDays": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const AdminListReferralsResponse = zod.array(AdminListReferralsResponseItem)
+
+
