@@ -3,20 +3,38 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AlphaTrade Pro API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: recommendations
+    description: Stock recommendations
+  - name: pnl
+    description: P&L tracking
+  - name: analytics
+    description: Analytics and reporting
+  - name: notifications
+    description: Push notifications
+  - name: subscriptions
+    description: Subscription management
+  - name: payments
+    description: Payment operations
+  - name: admin
+    description: Admin operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +42,1164 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with phone/email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "200":
+          description: Reset initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── RECOMMENDATIONS ────────────────────────────────────────────────────────
+  /recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [recommendations]
+      summary: List recommendations (latest first)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by date (YYYY-MM-DD)
+        - name: month
+          in: query
+          schema:
+            type: string
+          description: Filter by month (YYYY-MM)
+        - name: tradeType
+          in: query
+          schema:
+            $ref: "#/components/schemas/TradeType"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/RecommendationStatus"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of recommendations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationList"
+        "403":
+          description: Subscription required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      operationId: createRecommendation
+      tags: [recommendations]
+      summary: Create a stock recommendation (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecommendationRequest"
+      responses:
+        "201":
+          description: Recommendation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+        "403":
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommendations/today:
+    get:
+      operationId: getTodayRecommendations
+      tags: [recommendations]
+      summary: Get today's recommendations
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Today's recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+        "403":
+          description: Subscription required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommendations/{id}:
+    get:
+      operationId: getRecommendation
+      tags: [recommendations]
+      summary: Get a single recommendation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recommendation detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      operationId: updateRecommendation
+      tags: [recommendations]
+      summary: Update a recommendation (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecommendationRequest"
+      responses:
+        "200":
+          description: Updated recommendation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+
+    delete:
+      operationId: deleteRecommendation
+      tags: [recommendations]
+      summary: Delete a recommendation (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /recommendations/{id}/pnl:
+    put:
+      operationId: updateRecommendationPnl
+      tags: [pnl]
+      summary: Update evening P&L for a recommendation (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePnlRequest"
+      responses:
+        "200":
+          description: Updated recommendation with P&L
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+
+  # ─── ANALYTICS ──────────────────────────────────────────────────────────────
+  /analytics/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [analytics]
+      summary: Get user dashboard summary stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /analytics/performance:
+    get:
+      operationId: getPerformanceData
+      tags: [analytics]
+      summary: Monthly performance history (last 12 months)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Performance data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyPerformance"
+
+  /analytics/monthly/{month}:
+    get:
+      operationId: getMonthlyReport
+      tags: [analytics]
+      summary: Get monthly analytics report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Format YYYY-MM
+      responses:
+        "200":
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyReport"
+
+  # ─── ADMIN ANALYTICS ─────────────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Admin overview stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, trial, premium, expired]
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserList"
+
+  /admin/users/{id}:
+    get:
+      operationId: adminGetUser
+      tags: [admin]
+      summary: Get user details (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+    put:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Update user (admin) - block, extend subscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/revenue:
+    get:
+      operationId: getRevenueAnalytics
+      tags: [admin]
+      summary: Revenue analytics (last 12 months)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Revenue analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueAnalytics"
+
+  /admin/user-growth:
+    get:
+      operationId: getUserGrowthAnalytics
+      tags: [admin]
+      summary: User growth analytics (last 12 months)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User growth data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGrowthAnalytics"
+
+  # ─── SUBSCRIPTIONS ───────────────────────────────────────────────────────────
+  /subscriptions/status:
+    get:
+      operationId: getSubscriptionStatus
+      tags: [subscriptions]
+      summary: Get current user subscription status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscription status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStatus"
+
+  # ─── PAYMENTS ────────────────────────────────────────────────────────────────
+  /payments/create-order:
+    post:
+      operationId: createPaymentOrder
+      tags: [payments]
+      summary: Create Razorpay order for subscription
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Razorpay order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentOrder"
+
+  /payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payments]
+      summary: Verify Razorpay payment and activate subscription
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentRequest"
+      responses:
+        "200":
+          description: Payment verified, subscription activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionStatus"
+
+  /payments/history:
+    get:
+      operationId: getPaymentHistory
+      tags: [payments]
+      summary: Get user payment history
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+
+  # ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+  /notifications/register-device:
+    post:
+      operationId: registerDevice
+      tags: [notifications]
+      summary: Register device push token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDeviceRequest"
+      responses:
+        "200":
+          description: Token registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /notifications/send:
+    post:
+      operationId: sendNotification
+      tags: [notifications]
+      summary: Send push notification (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendNotificationRequest"
+      responses:
+        "200":
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /notifications/history:
+    get:
+      operationId: getNotificationHistory
+      tags: [notifications]
+      summary: Get notification history (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notification history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+# ─── COMPONENTS ──────────────────────────────────────────────────────────────
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ForgotPasswordRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+
+    RegisterDeviceRequest:
+      type: object
+      required: [token, platform]
+      properties:
+        token:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    TradeType:
+      type: string
+      enum: [intraday, swing, positional]
+
+    RiskLevel:
+      type: string
+      enum: [low, medium, high]
+
+    RecommendationStatus:
+      type: string
+      enum: [active, target_hit, stop_loss_hit, hold, partial_profit, closed]
+
+    SubscriptionType:
+      type: string
+      enum: [trial, premium, expired]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        subscriptionType:
+          $ref: "#/components/schemas/SubscriptionType"
+        trialStartDate:
+          type: string
+          format: date-time
+          nullable: true
+        trialExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        premiumExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        isBlocked:
+          type: boolean
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, phone, subscriptionType, isBlocked, isAdmin, createdAt]
+
+    AdminUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            totalPayments:
+              type: number
+            lastPaymentDate:
+              type: string
+              format: date-time
+              nullable: true
+
+    RegisterRequest:
+      type: object
+      required: [name, phone, password]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [phone, password]
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required: [token, user]
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        stockName:
+          type: string
+        nseSymbol:
+          type: string
+        buyPrice:
+          type: number
+        targetPrice:
+          type: number
+        stopLoss:
+          type: number
+        tradeType:
+          $ref: "#/components/schemas/TradeType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        notes:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/RecommendationStatus"
+        exitPrice:
+          type: number
+          nullable: true
+        pnlPercent:
+          type: number
+          nullable: true
+        pnlAbsolute:
+          type: number
+          nullable: true
+        date:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, stockName, nseSymbol, buyPrice, targetPrice, stopLoss, tradeType, riskLevel, status, date, createdAt, updatedAt]
+
+    RecommendationList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recommendation"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required: [data, total, page, limit, totalPages]
+
+    CreateRecommendationRequest:
+      type: object
+      required: [stockName, nseSymbol, buyPrice, targetPrice, stopLoss, tradeType, riskLevel]
+      properties:
+        stockName:
+          type: string
+        nseSymbol:
+          type: string
+        buyPrice:
+          type: number
+        targetPrice:
+          type: number
+        stopLoss:
+          type: number
+        tradeType:
+          $ref: "#/components/schemas/TradeType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        notes:
+          type: string
+        date:
+          type: string
+          format: date
+
+    UpdateRecommendationRequest:
+      type: object
+      properties:
+        stockName:
+          type: string
+        nseSymbol:
+          type: string
+        buyPrice:
+          type: number
+        targetPrice:
+          type: number
+        stopLoss:
+          type: number
+        tradeType:
+          $ref: "#/components/schemas/TradeType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        notes:
+          type: string
+        date:
+          type: string
+          format: date
+
+    UpdatePnlRequest:
+      type: object
+      required: [exitPrice, status]
+      properties:
+        exitPrice:
+          type: number
+        status:
+          $ref: "#/components/schemas/RecommendationStatus"
+        notes:
+          type: string
+
+    DashboardStats:
+      type: object
+      properties:
+        todayRecommendationsCount:
+          type: integer
+        monthlyProfitPercent:
+          type: number
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+        subscriptionType:
+          $ref: "#/components/schemas/SubscriptionType"
+        trialDaysRemaining:
+          type: integer
+          nullable: true
+        premiumDaysRemaining:
+          type: integer
+          nullable: true
+        bestTrade:
+          $ref: "#/components/schemas/Recommendation"
+          nullable: true
+        worstTrade:
+          $ref: "#/components/schemas/Recommendation"
+          nullable: true
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recommendation"
+      required: [todayRecommendationsCount, monthlyProfitPercent, totalTrades, winRate, subscriptionType]
+
+    MonthlyPerformance:
+      type: object
+      properties:
+        month:
+          type: string
+        totalTrades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        totalPnlPercent:
+          type: number
+        bestTradePercent:
+          type: number
+        worstTradePercent:
+          type: number
+      required: [month, totalTrades, wins, losses, winRate, totalPnlPercent, bestTradePercent, worstTradePercent]
+
+    MonthlyReport:
+      type: object
+      properties:
+        month:
+          type: string
+        summary:
+          $ref: "#/components/schemas/MonthlyPerformance"
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recommendation"
+      required: [month, summary, recommendations]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        activeTrialUsers:
+          type: integer
+        premiumUsers:
+          type: integer
+        expiredUsers:
+          type: integer
+        totalRevenue:
+          type: number
+        monthlyRevenue:
+          type: number
+        totalRecommendations:
+          type: integer
+        averageWinRate:
+          type: number
+        newUsersThisMonth:
+          type: integer
+        newUsersLastMonth:
+          type: integer
+      required: [totalUsers, activeTrialUsers, premiumUsers, expiredUsers, totalRevenue, monthlyRevenue, totalRecommendations, averageWinRate, newUsersThisMonth, newUsersLastMonth]
+
+    AdminUserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required: [data, total, page, limit, totalPages]
+
+    AdminUpdateUserRequest:
+      type: object
+      properties:
+        isBlocked:
+          type: boolean
+        subscriptionType:
+          $ref: "#/components/schemas/SubscriptionType"
+        premiumExpiryDate:
+          type: string
+          format: date-time
+
+    RevenueAnalytics:
+      type: object
+      properties:
+        monthly:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              revenue:
+                type: number
+              newSubscriptions:
+                type: integer
+              renewals:
+                type: integer
+            required: [month, revenue, newSubscriptions, renewals]
+        totalRevenue:
+          type: number
+        avgMonthlyRevenue:
+          type: number
+      required: [monthly, totalRevenue, avgMonthlyRevenue]
+
+    UserGrowthAnalytics:
+      type: object
+      properties:
+        monthly:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              newUsers:
+                type: integer
+              totalUsers:
+                type: integer
+              premiumConversions:
+                type: integer
+            required: [month, newUsers, totalUsers, premiumConversions]
+      required: [monthly]
+
+    SubscriptionStatus:
+      type: object
+      properties:
+        subscriptionType:
+          $ref: "#/components/schemas/SubscriptionType"
+        trialStartDate:
+          type: string
+          format: date-time
+          nullable: true
+        trialExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        premiumExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        daysRemaining:
+          type: integer
+          nullable: true
+        isActive:
+          type: boolean
+      required: [subscriptionType, isActive]
+
+    PaymentOrder:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        keyId:
+          type: string
+      required: [orderId, amount, currency, keyId]
+
+    VerifyPaymentRequest:
+      type: object
+      required: [razorpayOrderId, razorpayPaymentId, razorpaySignature]
+      properties:
+        razorpayOrderId:
+          type: string
+        razorpayPaymentId:
+          type: string
+        razorpaySignature:
+          type: string
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, success, failed]
+        razorpayOrderId:
+          type: string
+          nullable: true
+        razorpayPaymentId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, amount, currency, status, createdAt]
+
+    SendNotificationRequest:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        targetType:
+          type: string
+          enum: [all, premium, trial, specific]
+          default: all
+        userIds:
+          type: array
+          items:
+            type: integer
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        targetType:
+          type: string
+        sentCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, body, targetType, sentCount, createdAt]

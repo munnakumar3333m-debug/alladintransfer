@@ -1,6 +1,6 @@
-# [Project name]
+# AlphaTrade Pro
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Premium stock recommendation platform for India with daily picks, P&L tracking, and ₹2000/month subscription.
 
 ## Run & Operate
 
@@ -14,31 +14,57 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 at `/api`
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Mobile: Expo + React Native (web preview at `/`)
+- Admin: React + Vite + Tailwind + shadcn/ui (at `/admin/`)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for all API contracts)
+- `lib/api-client-react/src/generated/api.ts` — generated React Query hooks
+- `lib/api-zod/src/generated/` — generated Zod schemas
+- `lib/db/src/schema/` — Drizzle DB schema (users, recommendations, payments, notifications)
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/api-server/src/middlewares/auth.ts` — JWT auth middleware
+- `artifacts/mobile-app/app/` — Expo screens (auth, tabs, detail)
+- `artifacts/mobile-app/contexts/AuthContext.tsx` — JWT auth state
+- `artifacts/admin-dashboard/src/pages/` — Admin dashboard pages
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- JWT auth stored in AsyncStorage (mobile) / localStorage (admin). `SESSION_SECRET` env var is the JWT secret.
+- Subscription tiers: `trial` (30 days from signup, free), `premium` (₹2000/month via Razorpay), `expired`.
+- Payments via Razorpay. Env vars needed: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`.
+- API first: all endpoints defined in OpenAPI spec, code generated from it.
+- Admin user must have `is_admin = true` in DB. Default admin: phone `9999999999`, password `Admin@123`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Mobile app** (`/`): Expo app for end users — login/register, today's stock picks, history, analytics, subscription management.
+- **Admin dashboard** (`/admin/`): React dashboard for admins — manage users, post recommendations, update P&L, view analytics, send push notifications.
+- **API** (`/api`): Express backend with auth, recommendations, analytics, payments, notifications, subscriptions.
+
+## Demo Credentials
+
+- Admin: phone `9999999999`, password `Admin@123`
+- User (trial): phone `9876543210`, password `User@123`
+- User (premium): phone `9876543211`, password `User@123`
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Dark navy + emerald green finance theme throughout
+- India-first: INR prices, NSE symbols, Indian number formatting
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Always run `pnpm run typecheck:libs` before `pnpm --filter @workspace/api-server run typecheck` — the server depends on compiled lib declarations.
+- Drizzle schema uses camelCase in TS (`pnlPercent`), snake_case in DB (`pnl_percent`).
+- Do NOT run `pnpm dev` at workspace root — use `restart_workflow` instead.
+- `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` env vars not yet set — payments will create orders but Razorpay SDK integration needs these.
 
 ## Pointers
 

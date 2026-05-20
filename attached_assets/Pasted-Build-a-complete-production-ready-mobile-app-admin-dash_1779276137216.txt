@@ -1,0 +1,318 @@
+Build a complete production-ready mobile app + admin dashboard for a premium stock recommendation business in India.
+
+App Name: AlphaTrade Pro
+
+Objective:
+The app owner (admin) gives daily stock recommendations to users. Users can view recommendations, track historical performance, and see automatically calculated P&L reports. The app should have a premium dark UI like a professional trading platform.
+
+========================
+CORE FEATURES
+=============
+
+1. USER AUTHENTICATION
+
+* Phone number signup/login
+* Password login
+* OTP verification optional
+* Forgot password
+* JWT/Firebase authentication
+* Secure sessions
+
+User data fields:
+
+* Name
+* Phone number
+* Email
+* Password
+* Subscription status
+* Trial start date
+* Trial expiry date
+* Premium expiry date
+
+========================
+2. FREE TRIAL + PREMIUM SYSTEM
+==============================
+
+* Every new user gets 30-day free trial
+* After trial ends:
+  IF premium subscription active:
+  -> Continue full access
+  ELSE:
+  -> Hide all new daily recommendations
+  -> Show only:
+  - previous history
+  - old P&L data
+  - last visible report
+
+Premium Plan:
+
+* ₹2000/month
+
+Integrate:
+
+* Razorpay subscription payments
+* UPI
+* Debit/Credit cards
+
+Automatically update premium status after payment success.
+
+========================
+3. USER APP FEATURES
+====================
+
+HOME DASHBOARD:
+
+* Today recommendations
+* Monthly profit %
+* Total trades
+* Win rate
+* Subscription status
+* Trial days remaining
+
+DAILY RECOMMENDATION SCREEN:
+Admin posts 2–4 stocks daily at 8 AM.
+
+Each recommendation contains:
+
+* Stock Name
+* NSE Symbol
+* Buy Price
+* Target Price
+* Stop Loss
+* Trade Type:
+
+  * Intraday
+  * Swing
+  * Positional
+* Risk Level
+* Notes
+
+Premium dark UI with:
+
+* Green profit colors
+* Red loss colors
+* Trading app design
+* Smooth animations
+
+========================
+4. DAILY P&L UPDATE SYSTEM
+==========================
+
+At 8 PM admin updates results.
+
+Fields:
+
+* Exit Price
+* Profit/Loss %
+* Final Status:
+
+  * Target Hit
+  * Stop Loss Hit
+  * Hold
+  * Partial Profit
+* Final P&L
+
+Automatically calculate:
+
+* Daily P&L
+* Weekly P&L
+* Monthly P&L
+* Total cumulative returns
+* Accuracy percentage
+
+========================
+5. HISTORY + ANALYTICS
+======================
+
+Create History tab:
+
+* Date-wise recommendations
+* P&L history
+* Monthly reports
+* Win/Loss ratio
+* Total returns
+
+Create Analytics tab:
+
+* Monthly performance graphs
+* Profit curve
+* Bar charts
+* Win rate charts
+* Best trade
+* Worst trade
+* Total monthly return %
+
+Use TradingView-style charts.
+
+========================
+6. PUSH NOTIFICATIONS
+=====================
+
+Send notifications for:
+
+* New stock recommendation
+* P&L updates
+* Subscription expiry
+* Payment success
+* Announcements
+
+Use Firebase Cloud Messaging.
+
+========================
+7. ADMIN PANEL
+==============
+
+Create secure admin dashboard.
+
+Admin features:
+
+* Add/Edit/Delete recommendations
+* Update evening P&L
+* View all users
+* Manage subscriptions
+* Block users
+* Send notifications
+* View revenue analytics
+* View user growth analytics
+
+========================
+8. DATABASE + BACKEND
+=====================
+
+Use:
+Frontend:
+
+* React Native OR Flutter
+
+Backend:
+
+* Node.js + Express
+
+Database:
+
+* PostgreSQL OR Firebase OR Supabase
+
+Authentication:
+
+* Firebase Auth or JWT
+
+Payments:
+
+* Razorpay integration
+
+Hosting:
+
+* Vercel / AWS / Render
+
+Database tables:
+
+* Users
+* Recommendations
+* DailyPNL
+* MonthlyReports
+* Subscriptions
+* Payments
+* Notifications
+
+========================
+9. UI/UX DESIGN
+===============
+
+Design style:
+
+* Modern
+* Premium
+* Dark mode
+* Minimal
+* Fast
+* Smooth animations
+
+Include:
+
+* Bottom navigation tabs
+* Animated cards
+* Responsive mobile design
+* Professional typography
+
+========================
+10. SECURITY
+============
+
+Implement:
+
+* Secure APIs
+* Encrypted passwords
+* Admin protected routes
+* Payment security
+* Rate limiting
+* Secure database rules
+
+========================
+11. EXTRA FEATURES
+==================
+
+Optional:
+
+* Telegram signal integration
+* WhatsApp alerts
+* AI-generated market summary
+* Watchlist
+* Referral program
+* Hindi + English language support
+
+========================
+12. IMPORTANT AUTOMATION LOGIC
+==============================
+
+At 8 AM:
+
+* Admin posts recommendations
+
+At 8 PM:
+
+* Admin updates trade results
+
+System automatically:
+
+* Calculates P&L
+* Updates charts
+* Stores history
+* Generates monthly reports
+
+Users without active premium:
+
+* Cannot access new recommendations
+* Can only see previous reports/history
+
+========================
+13. FINAL OUTPUT REQUIRED
+=========================
+
+Generate:
+
+* Full frontend app
+* Backend APIs
+* Database schema
+* Admin panel
+* Authentication
+* Razorpay payment integration
+* Push notifications
+* Subscription system
+* Trial logic
+* P&L engine
+* Deployment-ready production code
+
+Code must be:
+
+* Scalable
+* Clean
+* Fast
+* Mobile optimized
+* Production ready
+
+Also include:
+
+* SEBI disclaimer page
+* Terms & Conditions
+* Privacy Policy
+* Risk warning popup before accessing recommendations
