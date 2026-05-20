@@ -68,25 +68,21 @@ export function RecommendationCard({ rec, onPress }: Props) {
       ]}
     >
       {/* Signal Banner */}
-      <View style={[styles.signalBanner, { backgroundColor: signalBg, borderColor: signalBorder }]}> 
+      <View style={[styles.signalBanner, { backgroundColor: signalBg, borderColor: signalBorder }]}>
         <View style={styles.signalLeft}>
-          <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}> 
+          <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}>
             <Feather
-              name={isBuy ? "arrow-up" : "arrow-down"}
+              name={isBuy ? "triangle" : "triangle"}
               size={18}
               color={signalColor}
+              style={isBuy ? styles.upIcon : styles.downIcon}
             />
           </View>
-          <View>
-            <Text style={[styles.signalLabel, { color: signalColor }]}> 
-              {isBuy ? "▲ BUY SIGNAL" : "▼ SELL SIGNAL"}
-            </Text>
-            <Text style={[styles.signalSub, { color: signalColor + "99" }]}> 
-              {isBuy ? "Bullish · Long Position" : "Bearish · Short Position"}
-            </Text>
-          </View>
+          <Text style={[styles.signalLabel, { color: signalColor }]}>
+            {isBuy ? "BUY" : "SELL"}
+          </Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}> 
+        <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}>
           <Text style={[styles.statusText, { color: statusColor }]}> 
             {STATUS_LABEL[rec.status] ?? rec.status}
           </Text>
@@ -232,11 +228,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.5,
   },
-  signalSub: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -246,6 +237,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
+  },
+  upIcon: {
+    transform: [{ rotate: "0deg" }],
+  },
+  downIcon: {
+    transform: [{ rotate: "180deg" }],
   },
   stockRow: {
     flexDirection: "row",
