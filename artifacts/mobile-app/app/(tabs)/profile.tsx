@@ -1,8 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import {
   useGetMe,
-  useGetMyReferralStats,
-  useGetMyReferrals,
   useGetSubscriptionStatus,
 } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
@@ -11,7 +9,6 @@ import {
   Alert,
   Platform,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -27,27 +24,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { logout } = useAuth();
-  const [copied, setCopied] = useState(false);
 
   const { data: user, isError: userError } = useGetMe();
   const { data: sub, isError: subError } = useGetSubscriptionStatus();
-  const { data: referralStats } = useGetMyReferralStats();
-  const { data: myReferrals } = useGetMyReferrals();
-
-  const handleCopyCode = async () => {
-    if (!referralStats?.code) return;
-    if (Platform.OS === "web") {
-      try {
-        await navigator.clipboard.writeText(referralStats.code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        Alert.alert("Your code", referralStats.code);
-      }
-    } else {
-      await Share.share({ message: `Use my referral code ${referralStats.code} to get 30 free days on Alladin!` });
-    }
-  };
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -117,63 +96,6 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      <View style={[styles.referralCard, { backgroundColor: colors.card, borderColor: colors.primary + "44" }]}> 
-        <View style={styles.referralHeader}>
-          <View style={[styles.referralIconWrap, { backgroundColor: colors.primary + "22" }]}>
-            <Feather name="gift" size={18} color={colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Invite Friends, Earn Free Days</Text>
-            <Text style={[styles.referralSub, { color: colors.mutedForeground }]}>Get 30 free premium days for every friend who subscribes</Text>
-          </View>
-        </View>
-
-        {referralStats ? (
-          <>
-            <TouchableOpacity style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={handleCopyCode} activeOpacity={0.75}>
-              <Text style={[styles.codeText, { color: colors.primary }]}>{referralStats.code}</Text>
-              <View style={[styles.copyBtn, { backgroundColor: copied ? colors.primary : colors.primary + "22" }]}>
-                <Feather name={copied ? "check" : "copy"} size={14} color={copied ? colors.primaryForeground : colors.primary} />
-                <Text style={[styles.copyBtnText, { color: copied ? colors.primaryForeground : colors.primary }]}>{copied ? "Copied!" : "Copy"}</Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.referralStats}>
-              <ReferralStat label="Total" value={referralStats.totalReferrals} colors={colors} />
-              <ReferralStat label="Rewarded" value={referralStats.rewardedReferrals} colors={colors} highlight />
-              <ReferralStat label="Pending" value={referralStats.pendingReferrals} colors={colors} />
-              <ReferralStat label="Days Earned" value={`${referralStats.totalDaysEarned}d`} colors={colors} />
-            </View>
-
-            {myReferrals && myReferrals.length > 0 && (
-              <View style={{ gap: 8, marginTop: 4 }}>
-                <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>Your referrals</Text>
-                {myReferrals.slice(0, 3).map((r) => (
-                  <View key={r.id} style={[styles.referralRow, { borderColor: colors.border }]}> 
-                    <View style={[styles.refAvatar, { backgroundColor: colors.primary + "22" }]}>
-                      <Text style={[styles.refAvatarText, { color: colors.primary }]}>{r.referredName[0].toUpperCase()}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.refName, { color: colors.foreground }]}>{r.referredName}</Text>
-                      <Text style={[styles.refDate, { color: colors.mutedForeground }]}>{new Date(r.createdAt).toLocaleDateString("en-IN")}</Text>
-                    </View>
-                    <View style={[styles.refStatus, { backgroundColor: r.status === "rewarded" ? colors.positive + "22" : colors.warning + "22" }]}> 
-                      <Text style={[styles.refStatusText, { color: r.status === "rewarded" ? colors.positive : colors.warning }]}>
-                        {r.status === "rewarded" ? "+30d" : "Pending"}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-          </>
-        ) : (
-          <View style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]}> 
-            <Text style={[styles.codeText, { color: colors.mutedForeground }]}>Loading code...</Text>
-          </View>
-        )}
-      </View>
-
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Account</Text>
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={handleLogout} activeOpacity={0.75}>
@@ -185,15 +107,6 @@ export default function ProfileScreen() {
 
       <Text style={[styles.version, { color: colors.mutedForeground }]}>ALLADIN  v1.0{"\n"}Powered by Fluxloom capitals</Text>
     </ScrollView>
-  );
-}
-
-function ReferralStat({ label, value, colors, highlight }: { label: string; value: string | number; colors: ReturnType<typeof import("@/hooks/useColors").useColors>; highlight?: boolean; }) {
-  return (
-    <View style={{ flex: 1, alignItems: "center" }}>
-      <Text style={{ fontSize: 18, fontWeight: "700", fontFamily: "Inter_700Bold", color: highlight ? colors.primary : colors.foreground }}>{value}</Text>
-      <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 2 }}>{label}</Text>
-    </View>
   );
 }
 
@@ -302,109 +215,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: "Inter_700Bold",
-  },
-  referralCard: {
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    gap: 14,
-  },
-  referralHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  referralIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  referralTitle: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-  },
-  referralSub: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
-  codeBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  codeText: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1.5,
-    flex: 1,
-  },
-  copyBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  copyBtnText: {
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-  },
-  referralStats: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    rowGap: 12,
-    marginTop: 2,
-  },
-  referralSubtitle: {
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.7,
-  },
-  referralRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    borderTopWidth: 1,
-    paddingTop: 10,
-  },
-  refAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  refAvatarText: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-  },
-  refName: {
-    fontSize: 14,
-    fontFamily: "Inter_700Bold",
-  },
-  refDate: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
-  refStatus: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-  },
-  refStatusText: {
-    fontSize: 11,
     fontFamily: "Inter_700Bold",
   },
   menuItem: {

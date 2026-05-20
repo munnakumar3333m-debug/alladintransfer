@@ -44,7 +44,7 @@ export default function HomeScreen() {
     month: "short",
   });
 
-  const daysLeft = sub?.daysLeft ?? 0;
+  const daysLeft = sub?.daysRemaining ?? 0;
 
   return (
     <ScrollView
@@ -78,9 +78,9 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {sub && (sub.type === "trial" || sub.type === "expired") && (
+      {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
         <SubscriptionBanner
-          type={sub.type === "expired" ? "expired" : "trial"}
+          type={sub.subscriptionType === "expired" ? "expired" : "trial"}
           daysLeft={daysLeft > 0 ? daysLeft : undefined}
         />
       )}
@@ -89,7 +89,7 @@ export default function HomeScreen() {
         <View style={styles.statsRow}>
           <StatsCard
             label="Total Picks"
-            value={stats.totalRecommendations}
+            value={stats.totalTrades}
             accent
           />
           <StatsCard
@@ -99,9 +99,9 @@ export default function HomeScreen() {
           />
           <StatsCard
             label="Avg P&L"
-            value={`${stats.avgPnl && stats.avgPnl >= 0 ? "+" : ""}${stats.avgPnl?.toFixed(1) ?? 0}%`}
-            positive={!!stats.avgPnl && stats.avgPnl >= 0}
-            negative={!!stats.avgPnl && stats.avgPnl < 0}
+            value={`${stats.monthlyProfitPercent && stats.monthlyProfitPercent >= 0 ? "+" : ""}${stats.monthlyProfitPercent?.toFixed(1) ?? 0}%`}
+            positive={!!stats.monthlyProfitPercent && stats.monthlyProfitPercent >= 0}
+            negative={!!stats.monthlyProfitPercent && stats.monthlyProfitPercent < 0}
           />
         </View>
       )}
