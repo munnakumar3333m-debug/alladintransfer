@@ -70,9 +70,10 @@ export function RecommendationCard({ rec, onPress }: Props) {
         <View style={styles.signalLeft}>
           <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}>
             <Feather
-              name={isBuy ? "arrow-up" : "arrow-down"}
+              name={isBuy ? "triangle" : "triangle"}
               size={18}
               color={signalColor}
+              style={isBuy ? styles.upIcon : styles.downIcon}
             />
           </View>
           <Text style={[styles.signalLabel, { color: signalColor }]}>
@@ -324,5 +325,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_500Medium",
     marginRight: 2,
+  },
+  upIcon: {
+    transform: [{ rotate: "0deg" }],
+  },
+  downIcon: {
+    transform: [{ rotate: "180deg" }],
   },
 });
