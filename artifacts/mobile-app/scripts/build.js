@@ -259,7 +259,7 @@ async function downloadFile(url, outputPath) {
 }
 
 async function downloadBundle(platform, timestamp, metroPort) {
-  const url = new URL(`http://127.0.0.1:${metroPort}/expo-router/entry.bundle`);
+  const url = new URL(`http://127.0.0.1:${metroPort}/index.bundle`);
   url.searchParams.set("platform", platform);
   url.searchParams.set("dev", "false");
   url.searchParams.set("hot", "false");
