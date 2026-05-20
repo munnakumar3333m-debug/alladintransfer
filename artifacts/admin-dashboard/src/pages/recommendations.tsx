@@ -3,7 +3,6 @@ import {
   useDeleteRecommendation,
   useListRecommendations,
   useUpdateRecommendationPnl,
-  useUpdateRecommendation,
 } from "@workspace/api-client-react";
 import type { Recommendation } from "@workspace/api-client-react";
 import { useState } from "react";
@@ -59,9 +58,6 @@ export default function RecommendationsPage() {
   });
   const { mutate: updatePnl, isPending: updatingPnl } = useUpdateRecommendationPnl({
     mutation: { onSuccess: () => { refetch(); setPnlModal(null); } },
-  });
-  const { mutate: updateRec } = useUpdateRecommendation({
-    mutation: { onSuccess: () => { refetch(); } },
   });
 
   const recs = data?.data ?? [];
@@ -207,8 +203,8 @@ function CreateForm({ onCreate, isPending, onClose }: {
       buyPrice: parseFloat(form.buyPrice),
       targetPrice: parseFloat(form.targetPrice),
       stopLoss: parseFloat(form.stopLoss),
-      screenshotUrl: screenshots[0],
-      screenshots,
+      screenshotUrl: screenshots[0] || undefined,
+      screenshots: screenshots.length > 0 ? screenshots : undefined,
     } as any);
   };
 
@@ -234,7 +230,7 @@ function CreateForm({ onCreate, isPending, onClose }: {
           <div className="space-y-1.5"><Label className="text-slate-300 text-xs">Trade Type</Label><select value={form.tradeType} onChange={set("tradeType") as any} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2"><option value="intraday">Intraday</option><option value="swing">Swing</option><option value="positional">Positional</option></select></div>
           <div className="space-y-1.5"><Label className="text-slate-300 text-xs">Risk Level</Label><select value={form.riskLevel} onChange={set("riskLevel") as any} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
           <div className="space-y-1.5 col-span-2 md:col-span-3"><Label className="text-slate-300 text-xs">Notes (optional)</Label><textarea value={form.notes} onChange={set("notes")} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-20" placeholder="Analysis notes..." /></div>
-          <div className="space-y-1.5 col-span-2 md:col-span-3"><Label className="text-slate-300 text-xs">Screenshot URLs (one per line)</Label><textarea value={screenshotText} onChange={(e) => setScreenshotText(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-24" placeholder="https://...jpg\nhttps://...png" /></div>
+          <div className="space-y-1.5 col-span-2 md:col-span-3"><Label className="text-slate-300 text-xs">Screenshot URLs (optional, one per line)</Label><textarea value={screenshotText} onChange={(e) => setScreenshotText(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-24" placeholder="https://...jpg\nhttps://...png" /></div>
         </div>
 
         <div className="flex gap-3 justify-end">
