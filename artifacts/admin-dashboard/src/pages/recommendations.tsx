@@ -196,15 +196,12 @@ function CreateForm({ onCreate, isPending, onClose }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const screenshots = screenshotText.split("\n").map((s) => s.trim()).filter(Boolean);
     onCreate({
       ...form,
       signalType,
       buyPrice: parseFloat(form.buyPrice),
       targetPrice: parseFloat(form.targetPrice),
       stopLoss: parseFloat(form.stopLoss),
-      screenshotUrl: screenshots[0] || undefined,
-      screenshots: screenshots.length > 0 ? screenshots : undefined,
     } as any);
   };
 
