@@ -109,7 +109,7 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Today's Picks
+            Today's Intraday Picks
           </Text>
           {todayRecs && todayRecs.length > 0 && (
             <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
