@@ -23,7 +23,7 @@ const RADIAN = Math.PI / 180;
 
 export default function AnalyticsPage() {
   const { data: stats } = useGetDashboardStats();
-  const { data: performance } = useGetPerformanceData();
+  const { data: performanceData } = useGetPerformanceData();
   const signalCompareData = [
     {
       name: "BUY",
@@ -39,10 +39,10 @@ export default function AnalyticsPage() {
     sellSignalCount: stats?.sellWinRate ? 1 : 0,
   };
   const revenue = {
-    monthly: performance?.map((month) => ({
+    monthly: Array.isArray(performanceData) ? performanceData.map((month) => ({
       month: month.month,
       revenue: month.totalPnlPercent ?? 0,
-    })) ?? [],
+    })) : [],
   };
 
   const pieData = stats
@@ -186,9 +186,9 @@ export default function AnalyticsPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-1">Monthly P&L Performance</h2>
           <p className="text-slate-400 text-xs mb-5">Average return % per month</p>
-          {performance && performance.length > 0 ? (
+          {Array.isArray(performanceData) && performanceData.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={performance.slice(-12)}>
+              <BarChart data={performanceData.slice(-12)}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 10 }} />
                 <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
@@ -198,7 +198,7 @@ export default function AnalyticsPage() {
                   formatter={(val: number) => [`${val?.toFixed(2)}%`, "Avg P&L"]}
                 />
                 <Bar dataKey="avgPnl" radius={[4, 4, 0, 0]}>
-                  {performance.slice(-12).map((p, i) => (
+                  {performanceData.slice(-12).map((p, i) => (
                     <Cell key={i} fill={(p.avgPnl ?? 0) >= 0 ? "#10b981" : "#ef4444"} />
                   ))}
                 </Bar>
