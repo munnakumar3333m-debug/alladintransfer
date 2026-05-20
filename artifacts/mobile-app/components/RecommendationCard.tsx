@@ -81,7 +81,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}>
-          <Text style={[styles.statusText, { color: statusColor }]}> 
+          <Text style={[styles.statusText, { color: statusColor }]}>
             {STATUS_LABEL[rec.status] ?? rec.status}
           </Text>
         </View>
@@ -90,7 +90,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
       {/* Stock identity */}
       <View style={styles.stockRow}>
         <View style={styles.symbolWrap}>
-          <Text style={[styles.symbol, { color: colors.foreground }]}> 
+          <Text style={[styles.symbol, { color: colors.foreground }]}>
             {rec.nseSymbol}
           </Text>
           <Text style={[styles.stockName, { color: colors.mutedForeground }]} numberOfLines={1}>
@@ -98,13 +98,13 @@ export function RecommendationCard({ rec, onPress }: Props) {
           </Text>
         </View>
         <View style={styles.badgesRow}>
-          <View style={[styles.badge, { backgroundColor: tradeColor + "22" }]}> 
-            <Text style={[styles.badgeText, { color: tradeColor }]}> 
+          <View style={[styles.badge, { backgroundColor: tradeColor + "22" }]}>
+            <Text style={[styles.badgeText, { color: tradeColor }]}>
               {rec.tradeType.toUpperCase()}
             </Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: riskColor + "22" }]}> 
-            <Text style={[styles.badgeText, { color: riskColor }]}> 
+          <View style={[styles.badge, { backgroundColor: riskColor + "22" }]}>
+            <Text style={[styles.badgeText, { color: riskColor }]}>
               {rec.riskLevel.toUpperCase()}
             </Text>
           </View>
@@ -156,7 +156,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
 
       <View style={styles.footer}>
         <Feather name="calendar" size={11} color={colors.mutedForeground} />
-        <Text style={[styles.date, { color: colors.mutedForeground }]}> {rec.date}</Text>
+        <Text style={[styles.date, { color: colors.mutedForeground }]}>{rec.date}</Text>
         <View style={styles.spacer} />
         <Text style={[styles.tapHint, { color: colors.mutedForeground }]}>View details</Text>
         <Feather name="chevron-right" size={13} color={colors.mutedForeground} />

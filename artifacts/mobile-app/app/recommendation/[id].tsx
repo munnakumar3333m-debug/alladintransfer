@@ -53,7 +53,7 @@ export default function RecommendationDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.foreground }]}> 
+        <Text style={[styles.navTitle, { color: colors.foreground }]}>
           {isLoading ? "Loading..." : (rec?.nseSymbol ?? "View Details")}
         </Text>
         <View style={styles.backBtn} />
