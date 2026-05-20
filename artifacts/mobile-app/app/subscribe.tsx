@@ -79,7 +79,7 @@ export default function SubscribeScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 120 },
+          { paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 24 },
         ]}
       >
         <View style={styles.heroSection}>
@@ -99,6 +99,20 @@ export default function SubscribeScreen() {
           </View>
           <Text style={[styles.priceSub, { color: colors.mutedForeground }]}>Only UPI supported · Instant renewal after approval</Text>
         </View>
+
+        <TouchableOpacity
+          style={[styles.payBtn, { backgroundColor: colors.primary }]}
+          onPress={handlePay}
+          activeOpacity={0.85}
+        >
+          <Feather name="smartphone" size={18} color={colors.primaryForeground} />
+          <Text style={[styles.payBtnText, { color: colors.primaryForeground }]}>Make Payment</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.paidBtn, { borderColor: colors.border }]} onPress={handlePaid} activeOpacity={0.85}>
+          <Feather name="check-circle" size={18} color={colors.foreground} />
+          <Text style={[styles.paidBtnText, { color: colors.foreground }]}>I have paid</Text>
+        </TouchableOpacity>
 
         <View style={[styles.upiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Pay using UPI</Text>
@@ -132,31 +146,6 @@ export default function SubscribeScreen() {
           <Text style={[styles.qrCaption, { color: colors.mutedForeground }]}>Scan QR in any UPI app</Text>
         </View>
       </ScrollView>
-
-      <View
-        style={[
-          styles.footer,
-          {
-            backgroundColor: colors.background,
-            borderTopColor: colors.border,
-            paddingBottom: Math.max(insets.bottom, Platform.OS === "web" ? 34 : 16) + 8,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={[styles.payBtn, { backgroundColor: colors.primary }]}
-          onPress={handlePay}
-          activeOpacity={0.85}
-        >
-          <Feather name="smartphone" size={18} color={colors.primaryForeground} />
-          <Text style={[styles.payBtnText, { color: colors.primaryForeground }]}>Make Payment</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.paidBtn, { borderColor: colors.border }]} onPress={handlePaid} activeOpacity={0.85}>
-          <Feather name="check-circle" size={18} color={colors.foreground} />
-          <Text style={[styles.paidBtnText, { color: colors.foreground }]}>I have paid</Text>
-        </TouchableOpacity>
-        <Text style={[styles.footerSub, { color: colors.mutedForeground }]}>Payment verification is handled securely by the admin team</Text>
-      </View>
     </View>
   );
 }
@@ -185,7 +174,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    gap: 24,
+    gap: 18,
   },
   heroSection: {
     alignItems: "center",
@@ -250,6 +239,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+  },
+  payBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  payBtnText: {
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  paidBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  paidBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   upiCard: {
     borderRadius: 18,
@@ -320,43 +336,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   qrCaption: {
-    textAlign: "center",
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-  },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    gap: 10,
-  },
-  payBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 16,
-  },
-  payBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-  },
-  paidBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  paidBtnText: {
-    fontSize: 15,
-    fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
-  },
-  footerSub: {
     textAlign: "center",
     fontSize: 12,
     fontFamily: "Inter_400Regular",
