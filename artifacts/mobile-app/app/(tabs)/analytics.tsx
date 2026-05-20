@@ -42,7 +42,7 @@ export default function AnalyticsScreen() {
       {isLoading ? (
         <ActivityIndicator color={colors.primary} size="large" style={styles.loader} />
       ) : hasError ? (
-        <View style={[styles.empty, { borderColor: colors.border }]}> 
+        <View style={[styles.empty, { borderColor: colors.border }]}>
           <Feather name="alert-triangle" size={36} color={colors.negative} />
           <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Analytics are temporarily unavailable</Text>
         </View>

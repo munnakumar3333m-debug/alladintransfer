@@ -56,14 +56,14 @@ export default function ProfileScreen() {
       <Text style={[styles.title, { color: colors.foreground }]}>Profile</Text>
 
       {userError || subError ? (
-        <View style={[styles.errorCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <View style={[styles.errorCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Feather name="alert-triangle" size={20} color={colors.negative} />
           <Text style={[styles.errorText, { color: colors.mutedForeground }]}>Profile data is temporarily unavailable</Text>
         </View>
       ) : null}
 
-      <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
-        <View style={[styles.avatar, { backgroundColor: colors.primary }]}> 
+      <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
           <Text style={[styles.avatarText, { color: colors.primaryForeground }]}>{initial}</Text>
         </View>
         <View style={styles.profileInfo}>
@@ -73,7 +73,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={[styles.subCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+      <View style={[styles.subCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.subRow}>
           <Text style={[styles.subLabel, { color: colors.mutedForeground }]}>Subscription</Text>
           <View style={[styles.subBadge, { backgroundColor: subColor + "22" }]}>

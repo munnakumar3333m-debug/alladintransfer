@@ -39,7 +39,7 @@ export default function RecommendationDetailScreen() {
   }, [rec?.screenshotUrl, rec?.screenshots]);
 
   return (
-    <View style={[styles.flex, { backgroundColor: colors.background }]}> 
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
       <View
         style={[
           styles.navBar,
@@ -70,7 +70,7 @@ export default function RecommendationDetailScreen() {
             },
           ]}
         >
-          <View style={[styles.heroCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <View style={[styles.heroCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.heroRow}>
               <View style={styles.titleWrap}>
                 <Text style={[styles.symbol, { color: colors.foreground }]}>{rec.nseSymbol}</Text>
@@ -84,7 +84,7 @@ export default function RecommendationDetailScreen() {
             </View>
           </View>
 
-          <View style={[styles.priceGrid, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <View style={[styles.priceGrid, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <PriceBlock label="Entry Price" value={`₹${rec.buyPrice}`} colors={colors} />
             <Divider colors={colors} />
             <PriceBlock label="Target Price" value={`₹${rec.targetPrice}`} color={colors.positive} colors={colors} />
@@ -92,13 +92,13 @@ export default function RecommendationDetailScreen() {
             <PriceBlock label="Stop Loss" value={`₹${rec.stopLoss}`} color={colors.negative} colors={colors} />
           </View>
 
-          <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <InfoRow label="Risk Level" value={rec.riskLevel?.toUpperCase() ?? "-"} valueColor={RISK_COLOR[rec.riskLevel ?? "medium"]} colors={colors} />
             <InfoRow label="Trade Type" value={rec.tradeType.toUpperCase()} colors={colors} />
           </View>
 
           {screenshots.length > 0 && (
-            <View style={[styles.screenshotCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+            <View style={[styles.screenshotCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Charts / Analysis Screenshot</Text>
                 <Text style={[styles.tapToZoom, { color: colors.mutedForeground }]}>Tap to zoom</Text>
@@ -133,7 +133,7 @@ export default function RecommendationDetailScreen() {
           )}
 
           {rec.notes && (
-            <View style={[styles.notesCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+            <View style={[styles.notesCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Notes / Explanation</Text>
               <Text style={[styles.notes, { color: colors.mutedForeground }]}>{rec.notes}</Text>
             </View>

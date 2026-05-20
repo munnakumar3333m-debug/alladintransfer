@@ -58,7 +58,7 @@ export default function SubscribeScreen() {
   };
 
   return (
-    <View style={[styles.flex, { backgroundColor: colors.background }]}> 
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
       <View
         style={[
           styles.navBar,
@@ -83,7 +83,7 @@ export default function SubscribeScreen() {
         ]}
       >
         <View style={styles.heroSection}>
-          <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}> 
+          <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}>
             <Feather name="credit-card" size={34} color={colors.primaryForeground} />
           </View>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>UPI Renewal</Text>
@@ -127,7 +127,7 @@ export default function SubscribeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.fakeQrWrap, { backgroundColor: colors.background, borderColor: colors.border }]}> 
+          <View style={[styles.fakeQrWrap, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.fakeQrGrid}>
               {Array.from({ length: 64 }).map((_, i) => (
                 <View

@@ -112,7 +112,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
       </View>
 
       {/* Price grid */}
-      <View style={[styles.priceGrid, { borderColor: colors.border }]}> 
+      <View style={[styles.priceGrid, { borderColor: colors.border }]}>
         <PriceCell
           label="Entry Price"
           value={`₹${rec.buyPrice}`}

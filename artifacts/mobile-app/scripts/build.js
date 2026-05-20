@@ -313,19 +313,19 @@ async function downloadManifest(platform, metroPort) {
   }
 }
 
-async function downloadBundlesAndManifests(timestamp) {
+async function downloadBundlesAndManifests(timestamp, metroPort) {
   console.log("Downloading bundles and manifests...");
   console.log("This may take several minutes for production builds...");
 
   try {
     // Bundles are sequential — Metro can't handle both platforms simultaneously
     // without stalling. Manifests are cheap and run in parallel after.
-    await downloadBundle("ios", timestamp);
-    await downloadBundle("android", timestamp);
+    await downloadBundle("ios", timestamp, metroPort);
+    await downloadBundle("android", timestamp, metroPort);
 
     const [iosManifest, androidManifest] = await Promise.all([
-      downloadManifest("ios"),
-      downloadManifest("android"),
+      downloadManifest("ios", metroPort),
+      downloadManifest("android", metroPort),
     ]);
 
     console.log("All downloads completed successfully");
@@ -455,7 +455,7 @@ async function downloadAssets(assets, timestamp) {
   return successCount;
 }
 
-function updateBundleUrls(timestamp, baseUrl) {
+function updateBundleUrls(timestamp, baseUrl, metroPort) {
   const updateForPlatform = (platform) => {
     const bundlePath = path.join(
       projectRoot,
@@ -545,6 +545,7 @@ async function main() {
   const expoPublicReplId = getExpoPublicReplId();
   const baseUrl = `https://${domain}`;
   const timestamp = `${Date.now()}-${process.pid}`;
+  const metroPort = await getMetroPort();
 
   prepareDirectories(timestamp);
   clearMetroCache();
@@ -552,7 +553,7 @@ async function main() {
   await startMetro(domain, expoPublicReplId);
 
   const downloadTimeout = 600000;
-  const downloadPromise = downloadBundlesAndManifests(timestamp);
+  const downloadPromise = downloadBundlesAndManifests(timestamp, metroPort);
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => {
       reject(
@@ -581,7 +582,7 @@ async function main() {
   const assetCount = await downloadAssets(assets, timestamp);
 
   if (assetCount > 0) {
-    updateBundleUrls(timestamp, baseUrl);
+    updateBundleUrls(timestamp, baseUrl, metroPort);
   }
 
   console.log("Updating manifests and creating landing page...");
