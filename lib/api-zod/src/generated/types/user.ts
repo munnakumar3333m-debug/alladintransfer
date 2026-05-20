@@ -5,18 +5,17 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { SubscriptionType } from './subscriptionType';
+import type { UserSubscriptionType } from './userSubscriptionType';
 
 export interface User {
   id: number;
   name: string;
   phone: string;
-  email?: string;
-  subscriptionType: SubscriptionType;
-  trialStartDate?: Date | null;
+  email?: string | null;
+  subscriptionType: UserSubscriptionType;
+  isAdmin: boolean;
   trialExpiryDate?: Date | null;
   premiumExpiryDate?: Date | null;
-  isBlocked: boolean;
-  isAdmin: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }

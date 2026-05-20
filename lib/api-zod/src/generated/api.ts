@@ -22,7 +22,6 @@ export const HealthCheckResponse = zod.object({
 export const RegisterBody = zod.object({
   "name": zod.string(),
   "phone": zod.string(),
-  "email": zod.string().optional(),
   "password": zod.string()
 })
 
@@ -31,7 +30,7 @@ export const RegisterBody = zod.object({
  * @summary Login with phone/email and password
  */
 export const LoginBody = zod.object({
-  "phone": zod.string(),
+  "identifier": zod.string(),
   "password": zod.string()
 })
 
@@ -41,14 +40,13 @@ export const LoginResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "phone": zod.string(),
-  "email": zod.string().optional(),
+  "email": zod.string().nullish(),
   "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
+  "isAdmin": zod.boolean(),
   "trialExpiryDate": zod.coerce.date().nullish(),
   "premiumExpiryDate": zod.coerce.date().nullish(),
-  "isBlocked": zod.boolean(),
-  "isAdmin": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
 })
 })
 
@@ -70,7 +68,7 @@ export const ForgotPasswordResponse = zod.object({
  */
 export const ResetPasswordBody = zod.object({
   "token": zod.string(),
-  "newPassword": zod.string()
+  "password": zod.string()
 })
 
 export const ResetPasswordResponse = zod.object({
@@ -85,14 +83,13 @@ export const GetMeResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "phone": zod.string(),
-  "email": zod.string().optional(),
+  "email": zod.string().nullish(),
   "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
+  "isAdmin": zod.boolean(),
   "trialExpiryDate": zod.coerce.date().nullish(),
   "premiumExpiryDate": zod.coerce.date().nullish(),
-  "isBlocked": zod.boolean(),
-  "isAdmin": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
 })
 
 
@@ -122,8 +119,10 @@ export const ListRecommendationsResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -150,8 +149,10 @@ export const CreateRecommendationBody = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().optional(),
+  "screenshotUrl": zod.string().optional(),
+  "screenshots": zod.array(zod.string()).optional(),
   "date": zod.coerce.date().optional()
 })
 
@@ -168,8 +169,10 @@ export const GetTodayRecommendationsResponseItem = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -197,8 +200,10 @@ export const GetRecommendationResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -224,8 +229,10 @@ export const UpdateRecommendationBody = zod.object({
   "targetPrice": zod.number().optional(),
   "stopLoss": zod.number().optional(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']).optional(),
-  "riskLevel": zod.enum(['low', 'medium', 'high']).optional(),
+  "riskLevel": zod.string().optional(),
   "notes": zod.string().optional(),
+  "screenshotUrl": zod.string().optional(),
+  "screenshots": zod.array(zod.string()).optional(),
   "date": zod.coerce.date().optional()
 })
 
@@ -238,8 +245,10 @@ export const UpdateRecommendationResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -280,8 +289,10 @@ export const UpdateRecommendationPnlResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -312,8 +323,10 @@ export const GetDashboardStatsResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -331,8 +344,10 @@ export const GetDashboardStatsResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -350,8 +365,10 @@ export const GetDashboardStatsResponse = zod.object({
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
+  "riskLevel": zod.string(),
   "notes": zod.string().nullish(),
+  "screenshotUrl": zod.string().nullish(),
+  "screenshots": zod.array(zod.string()).nullish(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
   "exitPrice": zod.number().nullish(),
   "pnlPercent": zod.number().nullish(),
@@ -366,345 +383,28 @@ export const GetDashboardStatsResponse = zod.object({
 /**
  * @summary Monthly performance history (last 12 months)
  */
-export const GetPerformanceDataResponseItem = zod.object({
-  "month": zod.string(),
-  "totalTrades": zod.number(),
-  "wins": zod.number(),
-  "losses": zod.number(),
-  "winRate": zod.number(),
-  "totalPnlPercent": zod.number(),
-  "bestTradePercent": zod.number(),
-  "worstTradePercent": zod.number()
+export const GetPerformanceDataResponse = zod.object({
+  "months": zod.array(zod.object({
+
+}).passthrough())
 })
-export const GetPerformanceDataResponse = zod.array(GetPerformanceDataResponseItem)
 
 
 /**
- * @summary Get monthly analytics report
+ * @summary Win rate history by month
  */
-export const GetMonthlyReportParams = zod.object({
-  "month": zod.coerce.string().describe('Format YYYY-MM')
-})
+export const GetWinRateHistoryResponse = zod.object({
+  "months": zod.array(zod.object({
 
-export const GetMonthlyReportResponse = zod.object({
-  "month": zod.string(),
-  "summary": zod.object({
-  "month": zod.string(),
-  "totalTrades": zod.number(),
-  "wins": zod.number(),
-  "losses": zod.number(),
-  "winRate": zod.number(),
-  "totalPnlPercent": zod.number(),
-  "bestTradePercent": zod.number(),
-  "worstTradePercent": zod.number()
-}),
-  "recommendations": zod.array(zod.object({
-  "id": zod.number(),
-  "stockName": zod.string(),
-  "nseSymbol": zod.string(),
-  "signalType": zod.enum(['BUY', 'SELL']),
-  "buyPrice": zod.number(),
-  "targetPrice": zod.number(),
-  "stopLoss": zod.number(),
-  "tradeType": zod.enum(['intraday', 'swing', 'positional']),
-  "riskLevel": zod.enum(['low', 'medium', 'high']),
-  "notes": zod.string().nullish(),
-  "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']),
-  "exitPrice": zod.number().nullish(),
-  "pnlPercent": zod.number().nullish(),
-  "pnlAbsolute": zod.number().nullish(),
-  "date": zod.coerce.date(),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
-}))
+}).passthrough())
 })
 
 
 /**
- * @summary Admin overview stats
- */
-export const GetAdminStatsResponse = zod.object({
-  "totalUsers": zod.number(),
-  "activeTrialUsers": zod.number(),
-  "premiumUsers": zod.number(),
-  "expiredUsers": zod.number(),
-  "totalRevenue": zod.number(),
-  "monthlyRevenue": zod.number(),
-  "totalRecommendations": zod.number(),
-  "averageWinRate": zod.number(),
-  "newUsersThisMonth": zod.number(),
-  "newUsersLastMonth": zod.number(),
-  "buySignalCount": zod.number(),
-  "sellSignalCount": zod.number(),
-  "buyWinRate": zod.number(),
-  "sellWinRate": zod.number()
-})
-
-
-/**
- * @summary List all users (admin)
- */
-export const adminListUsersQueryPageDefault = 1;
-export const adminListUsersQueryLimitDefault = 20;
-
-export const AdminListUsersQueryParams = zod.object({
-  "page": zod.coerce.number().default(adminListUsersQueryPageDefault),
-  "limit": zod.coerce.number().default(adminListUsersQueryLimitDefault),
-  "search": zod.coerce.string().optional(),
-  "status": zod.enum(['all', 'trial', 'premium', 'expired']).optional()
-})
-
-export const AdminListUsersResponse = zod.object({
-  "data": zod.array(zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "phone": zod.string(),
-  "email": zod.string().optional(),
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
-  "trialExpiryDate": zod.coerce.date().nullish(),
-  "premiumExpiryDate": zod.coerce.date().nullish(),
-  "isBlocked": zod.boolean(),
-  "isAdmin": zod.boolean(),
-  "createdAt": zod.coerce.date()
-}).and(zod.object({
-  "totalPayments": zod.number().optional(),
-  "lastPaymentDate": zod.coerce.date().nullish()
-}))),
-  "total": zod.number(),
-  "page": zod.number(),
-  "limit": zod.number(),
-  "totalPages": zod.number()
-})
-
-
-/**
- * @summary Get user details (admin)
- */
-export const AdminGetUserParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const AdminGetUserResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "phone": zod.string(),
-  "email": zod.string().optional(),
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
-  "trialExpiryDate": zod.coerce.date().nullish(),
-  "premiumExpiryDate": zod.coerce.date().nullish(),
-  "isBlocked": zod.boolean(),
-  "isAdmin": zod.boolean(),
-  "createdAt": zod.coerce.date()
-}).and(zod.object({
-  "totalPayments": zod.number().optional(),
-  "lastPaymentDate": zod.coerce.date().nullish()
-}))
-
-
-/**
- * @summary Update user (admin) - block, extend subscription
- */
-export const AdminUpdateUserParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const AdminUpdateUserBody = zod.object({
-  "isBlocked": zod.boolean().optional(),
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']).optional(),
-  "premiumExpiryDate": zod.coerce.date().optional()
-})
-
-export const AdminUpdateUserResponse = zod.object({
-  "id": zod.number(),
-  "name": zod.string(),
-  "phone": zod.string(),
-  "email": zod.string().optional(),
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
-  "trialExpiryDate": zod.coerce.date().nullish(),
-  "premiumExpiryDate": zod.coerce.date().nullish(),
-  "isBlocked": zod.boolean(),
-  "isAdmin": zod.boolean(),
-  "createdAt": zod.coerce.date()
-}).and(zod.object({
-  "totalPayments": zod.number().optional(),
-  "lastPaymentDate": zod.coerce.date().nullish()
-}))
-
-
-/**
- * @summary Revenue analytics (last 12 months)
- */
-export const GetRevenueAnalyticsResponse = zod.object({
-  "monthly": zod.array(zod.object({
-  "month": zod.string(),
-  "revenue": zod.number(),
-  "newSubscriptions": zod.number(),
-  "renewals": zod.number()
-})),
-  "totalRevenue": zod.number(),
-  "avgMonthlyRevenue": zod.number()
-})
-
-
-/**
- * @summary User growth analytics (last 12 months)
- */
-export const GetUserGrowthAnalyticsResponse = zod.object({
-  "monthly": zod.array(zod.object({
-  "month": zod.string(),
-  "newUsers": zod.number(),
-  "totalUsers": zod.number(),
-  "premiumConversions": zod.number()
-}))
-})
-
-
-/**
- * @summary Get current user subscription status
+ * @summary Get current subscription status
  */
 export const GetSubscriptionStatusResponse = zod.object({
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
-  "trialExpiryDate": zod.coerce.date().nullish(),
-  "premiumExpiryDate": zod.coerce.date().nullish(),
-  "daysRemaining": zod.number().nullish(),
-  "isActive": zod.boolean()
+  "subscriptionType": zod.enum(['trial', 'premium', 'expired'])
 })
-
-
-/**
- * @summary Verify Razorpay payment and activate subscription
- */
-export const VerifyPaymentBody = zod.object({
-  "razorpayOrderId": zod.string(),
-  "razorpayPaymentId": zod.string(),
-  "razorpaySignature": zod.string()
-})
-
-export const VerifyPaymentResponse = zod.object({
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
-  "trialStartDate": zod.coerce.date().nullish(),
-  "trialExpiryDate": zod.coerce.date().nullish(),
-  "premiumExpiryDate": zod.coerce.date().nullish(),
-  "daysRemaining": zod.number().nullish(),
-  "isActive": zod.boolean()
-})
-
-
-/**
- * @summary Get user payment history
- */
-export const GetPaymentHistoryResponseItem = zod.object({
-  "id": zod.number(),
-  "amount": zod.number(),
-  "currency": zod.string(),
-  "status": zod.enum(['pending', 'success', 'failed']),
-  "razorpayOrderId": zod.string().nullish(),
-  "razorpayPaymentId": zod.string().nullish(),
-  "createdAt": zod.coerce.date()
-})
-export const GetPaymentHistoryResponse = zod.array(GetPaymentHistoryResponseItem)
-
-
-/**
- * @summary Register device push token
- */
-export const RegisterDeviceBody = zod.object({
-  "token": zod.string(),
-  "platform": zod.enum(['ios', 'android'])
-})
-
-export const RegisterDeviceResponse = zod.object({
-  "message": zod.string()
-})
-
-
-/**
- * @summary Send push notification (admin only)
- */
-export const sendNotificationBodyTargetTypeDefault = `all`;
-
-export const SendNotificationBody = zod.object({
-  "title": zod.string(),
-  "body": zod.string(),
-  "targetType": zod.enum(['all', 'premium', 'trial', 'specific']).default(sendNotificationBodyTargetTypeDefault),
-  "userIds": zod.array(zod.number()).optional()
-})
-
-export const SendNotificationResponse = zod.object({
-  "message": zod.string()
-})
-
-
-/**
- * @summary Get notification history (admin)
- */
-export const GetNotificationHistoryResponseItem = zod.object({
-  "id": zod.number(),
-  "title": zod.string(),
-  "body": zod.string(),
-  "targetType": zod.string(),
-  "sentCount": zod.number(),
-  "createdAt": zod.coerce.date()
-})
-export const GetNotificationHistoryResponse = zod.array(GetNotificationHistoryResponseItem)
-
-
-/**
- * @summary Get my referral code and stats
- */
-export const GetMyReferralStatsResponse = zod.object({
-  "code": zod.string(),
-  "totalReferrals": zod.number(),
-  "rewardedReferrals": zod.number(),
-  "pendingReferrals": zod.number(),
-  "totalDaysEarned": zod.number()
-})
-
-
-/**
- * @summary Get list of people I referred
- */
-export const GetMyReferralsResponseItem = zod.object({
-  "id": zod.number(),
-  "referredName": zod.string(),
-  "referredPhone": zod.string(),
-  "status": zod.enum(['pending', 'rewarded']),
-  "rewardDays": zod.number(),
-  "createdAt": zod.coerce.date(),
-  "rewardedAt": zod.coerce.date().nullish()
-})
-export const GetMyReferralsResponse = zod.array(GetMyReferralsResponseItem)
-
-
-/**
- * @summary Apply a referral code to my account
- */
-export const ApplyReferralCodeBody = zod.object({
-  "code": zod.string()
-})
-
-export const ApplyReferralCodeResponse = zod.object({
-  "message": zod.string()
-})
-
-
-/**
- * @summary Admin — list all referrals
- */
-export const AdminListReferralsResponseItem = zod.object({
-  "id": zod.number(),
-  "referrerName": zod.string(),
-  "referrerPhone": zod.string(),
-  "referredName": zod.string(),
-  "referredPhone": zod.string(),
-  "status": zod.enum(['pending', 'rewarded']),
-  "rewardDays": zod.number(),
-  "createdAt": zod.coerce.date()
-})
-export const AdminListReferralsResponse = zod.array(AdminListReferralsResponseItem)
 
 

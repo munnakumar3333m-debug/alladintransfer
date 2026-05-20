@@ -5,9 +5,5 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { User } from './user';
 
-export type AdminUser = User & ({
-  totalPayments?: number;
-  lastPaymentDate?: Date | null;
-});
+export type WinRateHistoryMonthsItem = { [key: string]: unknown };

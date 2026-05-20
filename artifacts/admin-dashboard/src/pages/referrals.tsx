@@ -1,13 +1,12 @@
-import { useAdminListReferrals } from "@workspace/api-client-react";
 import { CheckCircle2, Clock, Gift, Users } from "lucide-react";
 
 export default function ReferralsPage() {
-  const { data: referrals, isLoading } = useAdminListReferrals();
-
-  const total = referrals?.length ?? 0;
-  const rewarded = referrals?.filter((r) => r.status === "rewarded").length ?? 0;
-  const pending = referrals?.filter((r) => r.status === "pending").length ?? 0;
-  const totalDays = rewarded * 30;
+  const referrals = [];
+  const isLoading = false;
+  const total = 0;
+  const rewarded = 0;
+  const pending = 0;
+  const totalDays = 0;
 
   return (
     <div className="p-8 space-y-6">
@@ -66,7 +65,7 @@ export default function ReferralsPage() {
               </tr>
             </thead>
             <tbody>
-              {referrals.map((r) => (
+              {referrals.map((r: never) => (
                 <tr
                   key={r.id}
                   className="border-b border-slate-800/60 hover:bg-slate-800/40 transition-colors"

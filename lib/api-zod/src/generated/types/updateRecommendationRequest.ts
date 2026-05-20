@@ -5,7 +5,6 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { RiskLevel } from './riskLevel';
 import type { SignalType } from './signalType';
 import type { TradeType } from './tradeType';
 
@@ -17,7 +16,9 @@ export interface UpdateRecommendationRequest {
   targetPrice?: number;
   stopLoss?: number;
   tradeType?: TradeType;
-  riskLevel?: RiskLevel;
+  riskLevel?: string;
   notes?: string;
+  screenshotUrl?: string;
+  screenshots?: string[];
   date?: Date;
 }

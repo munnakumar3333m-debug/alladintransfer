@@ -6,11 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AdminListUsersStatus = typeof AdminListUsersStatus[keyof typeof AdminListUsersStatus];
+export type SubscriptionStatusSubscriptionType = typeof SubscriptionStatusSubscriptionType[keyof typeof SubscriptionStatusSubscriptionType];
 
 
-export const AdminListUsersStatus = {
-  all: 'all',
+export const SubscriptionStatusSubscriptionType = {
   trial: 'trial',
   premium: 'premium',
   expired: 'expired',

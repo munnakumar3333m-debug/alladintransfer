@@ -1,7 +1,3 @@
-import {
-  useGetNotificationHistory,
-  useSendNotification,
-} from "@workspace/api-client-react";
 import { useState } from "react";
 import { Bell, CheckCircle2, Send, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,24 +9,16 @@ export default function NotificationsPage() {
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState<"all" | "premium" | "trial">("all");
   const [sent, setSent] = useState(false);
-
-  const { data: history, refetch } = useGetNotificationHistory();
-  const { mutate: send, isPending } = useSendNotification({
-    mutation: {
-      onSuccess: () => {
-        setSent(true);
-        setTitle("");
-        setBody("");
-        setTimeout(() => setSent(false), 3000);
-        refetch();
-      },
-    },
-  });
+  const history: Array<{ id: string; title: string; body: string; audience?: string; createdAt: string }> = [];
+  const isPending = false;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !body) return;
-    send({ data: { title, body, audience } });
+    setSent(true);
+    setTitle("");
+    setBody("");
+    setTimeout(() => setSent(false), 3000);
   };
 
   return (

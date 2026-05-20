@@ -1,8 +1,6 @@
 import {
-  useGetAdminStats,
   useGetDashboardStats,
   useGetPerformanceData,
-  useGetRevenueAnalytics,
 } from "@workspace/api-client-react";
 import {
   Bar,
@@ -25,9 +23,7 @@ const RADIAN = Math.PI / 180;
 
 export default function AnalyticsPage() {
   const { data: stats } = useGetDashboardStats();
-  const { data: adminStats } = useGetAdminStats();
   const { data: performance } = useGetPerformanceData();
-  const { data: revenue } = useGetRevenueAnalytics();
 
   const pieData = stats
     ? [
@@ -35,13 +31,6 @@ export default function AnalyticsPage() {
         { name: "Stop Loss", value: stats.stopLossCount ?? 0, color: "#ef4444" },
         { name: "Active/Hold", value: stats.activeCount ?? 0, color: "#f59e0b" },
       ].filter((d) => d.value > 0)
-    : [];
-
-  const signalCompareData = adminStats
-    ? [
-        { name: "BUY", count: adminStats.buySignalCount, winRate: adminStats.buyWinRate },
-        { name: "SELL", count: adminStats.sellSignalCount, winRate: adminStats.sellWinRate },
-      ]
     : [];
 
   return (
@@ -64,8 +53,8 @@ export default function AnalyticsPage() {
             color: (stats?.avgPnl ?? 0) >= 0 ? "text-emerald-400" : "text-red-400",
           },
           {
-            label: "Total Revenue",
-            value: `₹${((revenue?.totalRevenue ?? 0) / 100).toFixed(0)}`,
+            label: "Total Trades",
+            value: stats?.totalTrades ?? 0,
             color: "text-blue-400",
           },
           {
@@ -99,11 +88,11 @@ export default function AnalyticsPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-slate-400 text-xs">Total Signals</p>
-                <p className="text-white text-2xl font-bold">{adminStats?.buySignalCount ?? 0}</p>
+                <p className="text-white text-2xl font-bold">{stats?.todayRecommendationsCount ?? 0}</p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Win Rate</p>
-                <p className="text-emerald-400 text-2xl font-bold">{adminStats?.buyWinRate?.toFixed(1) ?? 0}%</p>
+                <p className="text-emerald-400 text-2xl font-bold">{stats?.winRate?.toFixed(1) ?? 0}%</p>
               </div>
             </div>
             {/* Win rate bar */}
@@ -111,7 +100,7 @@ export default function AnalyticsPage() {
               <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(adminStats?.buyWinRate ?? 0, 100)}%` }}
+                  style={{ width: `${Math.min(stats?.winRate ?? 0, 100)}%` }}
                 />
               </div>
             </div>
@@ -128,11 +117,11 @@ export default function AnalyticsPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-slate-400 text-xs">Total Signals</p>
-                <p className="text-white text-2xl font-bold">{adminStats?.sellSignalCount ?? 0}</p>
+                <p className="text-white text-2xl font-bold">{stats?.totalTrades ?? 0}</p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Win Rate</p>
-                <p className="text-red-400 text-2xl font-bold">{adminStats?.sellWinRate?.toFixed(1) ?? 0}%</p>
+                <p className="text-red-400 text-2xl font-bold">{stats?.monthlyProfitPercent?.toFixed(1) ?? 0}%</p>
               </div>
             </div>
             {/* Win rate bar */}
@@ -140,7 +129,7 @@ export default function AnalyticsPage() {
               <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-red-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(adminStats?.sellWinRate ?? 0, 100)}%` }}
+                  style={{ width: `${Math.min(stats?.monthlyProfitPercent ?? 0, 100)}%` }}
                 />
               </div>
             </div>

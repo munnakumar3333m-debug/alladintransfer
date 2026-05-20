@@ -7,6 +7,6 @@
  */
 
 export interface LoginRequest {
-  phone: string;
+  identifier: string;
   password: string;
 }

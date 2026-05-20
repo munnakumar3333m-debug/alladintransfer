@@ -449,6 +449,78 @@ components:
       properties:
         message:
           type: string
+    RegisterRequest:
+      type: object
+      required: [name, phone, password]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+    LoginRequest:
+      type: object
+      required: [identifier, password]
+      properties:
+        identifier:
+          type: string
+        password:
+          type: string
+    ForgotPasswordRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+    User:
+      type: object
+      required: [id, name, phone, subscriptionType, isAdmin, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          nullable: true
+        subscriptionType:
+          type: string
+          enum: [trial, premium, expired]
+        isAdmin:
+          type: boolean
+        trialExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        premiumExpiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     TradeType:
       type: string
       enum: [intraday, swing, positional]
@@ -657,3 +729,19 @@ components:
         subscriptionType:
           type: string
           enum: [trial, premium, expired]
+    RecommendationList:
+      type: object
+      required: [data, total, page, limit, totalPages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recommendation"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer

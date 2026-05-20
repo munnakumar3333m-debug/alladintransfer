@@ -9,35 +9,59 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface ErrorResponse {
+  error: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  phone: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  identifier: string;
+  password: string;
+}
+
 export interface ForgotPasswordRequest {
   phone: string;
 }
 
 export interface ResetPasswordRequest {
   token: string;
-  newPassword: string;
+  password: string;
 }
 
-export type RegisterDeviceRequestPlatform = typeof RegisterDeviceRequestPlatform[keyof typeof RegisterDeviceRequestPlatform];
+export type UserSubscriptionType = typeof UserSubscriptionType[keyof typeof UserSubscriptionType];
 
 
-export const RegisterDeviceRequestPlatform = {
-  ios: 'ios',
-  android: 'android',
+export const UserSubscriptionType = {
+  trial: 'trial',
+  premium: 'premium',
+  expired: 'expired',
 } as const;
 
-export interface RegisterDeviceRequest {
+export interface User {
+  id: number;
+  name: string;
+  phone: string;
+  email?: string | null;
+  subscriptionType: UserSubscriptionType;
+  isAdmin: boolean;
+  trialExpiryDate?: string | null;
+  premiumExpiryDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthResponse {
   token: string;
-  platform: RegisterDeviceRequestPlatform;
-}
-
-export interface ErrorResponse {
-  error: string;
-  message?: string;
-}
-
-export interface MessageResponse {
-  message: string;
+  user: User;
 }
 
 export type TradeType = typeof TradeType[keyof typeof TradeType];
@@ -47,15 +71,6 @@ export const TradeType = {
   intraday: 'intraday',
   swing: 'swing',
   positional: 'positional',
-} as const;
-
-export type RiskLevel = typeof RiskLevel[keyof typeof RiskLevel];
-
-
-export const RiskLevel = {
-  low: 'low',
-  medium: 'medium',
-  high: 'high',
 } as const;
 
 export type SignalType = typeof SignalType[keyof typeof SignalType];
@@ -78,51 +93,6 @@ export const RecommendationStatus = {
   closed: 'closed',
 } as const;
 
-export type SubscriptionType = typeof SubscriptionType[keyof typeof SubscriptionType];
-
-
-export const SubscriptionType = {
-  trial: 'trial',
-  premium: 'premium',
-  expired: 'expired',
-} as const;
-
-export interface User {
-  id: number;
-  name: string;
-  phone: string;
-  email?: string;
-  subscriptionType: SubscriptionType;
-  trialStartDate?: string | null;
-  trialExpiryDate?: string | null;
-  premiumExpiryDate?: string | null;
-  isBlocked: boolean;
-  isAdmin: boolean;
-  createdAt: string;
-}
-
-export type AdminUser = User & ({
-  totalPayments?: number;
-  lastPaymentDate?: string | null;
-});
-
-export interface RegisterRequest {
-  name: string;
-  phone: string;
-  email?: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  phone: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
-
 export interface Recommendation {
   id: number;
   stockName: string;
@@ -132,8 +102,10 @@ export interface Recommendation {
   targetPrice: number;
   stopLoss: number;
   tradeType: TradeType;
-  riskLevel: RiskLevel;
+  riskLevel: string;
   notes?: string | null;
+  screenshotUrl?: string | null;
+  screenshots?: string[] | null;
   status: RecommendationStatus;
   exitPrice?: number | null;
   pnlPercent?: number | null;
@@ -141,14 +113,6 @@ export interface Recommendation {
   date: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface RecommendationList {
-  data: Recommendation[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 export interface CreateRecommendationRequest {
@@ -159,8 +123,10 @@ export interface CreateRecommendationRequest {
   targetPrice: number;
   stopLoss: number;
   tradeType: TradeType;
-  riskLevel: RiskLevel;
+  riskLevel: string;
   notes?: string;
+  screenshotUrl?: string;
+  screenshots?: string[];
   date?: string;
 }
 
@@ -172,8 +138,10 @@ export interface UpdateRecommendationRequest {
   targetPrice?: number;
   stopLoss?: number;
   tradeType?: TradeType;
-  riskLevel?: RiskLevel;
+  riskLevel?: string;
   notes?: string;
+  screenshotUrl?: string;
+  screenshots?: string[];
   date?: string;
 }
 
@@ -183,12 +151,21 @@ export interface UpdatePnlRequest {
   notes?: string;
 }
 
+export type DashboardStatsSubscriptionType = typeof DashboardStatsSubscriptionType[keyof typeof DashboardStatsSubscriptionType];
+
+
+export const DashboardStatsSubscriptionType = {
+  trial: 'trial',
+  premium: 'premium',
+  expired: 'expired',
+} as const;
+
 export interface DashboardStats {
   todayRecommendationsCount: number;
   monthlyProfitPercent: number;
   totalTrades: number;
   winRate: number;
-  subscriptionType: SubscriptionType;
+  subscriptionType: DashboardStatsSubscriptionType;
   trialDaysRemaining?: number | null;
   premiumDaysRemaining?: number | null;
   bestTrade?: Recommendation | null;
@@ -196,192 +173,37 @@ export interface DashboardStats {
   recentActivity?: Recommendation[];
 }
 
-export interface MonthlyPerformance {
-  month: string;
-  totalTrades: number;
-  wins: number;
-  losses: number;
-  winRate: number;
-  totalPnlPercent: number;
-  bestTradePercent: number;
-  worstTradePercent: number;
+export type PerformanceDataMonthsItem = { [key: string]: unknown };
+
+export interface PerformanceData {
+  months: PerformanceDataMonthsItem[];
 }
 
-export interface MonthlyReport {
-  month: string;
-  summary: MonthlyPerformance;
-  recommendations: Recommendation[];
+export type WinRateHistoryMonthsItem = { [key: string]: unknown };
+
+export interface WinRateHistory {
+  months: WinRateHistoryMonthsItem[];
 }
 
-export interface AdminStats {
-  totalUsers: number;
-  activeTrialUsers: number;
-  premiumUsers: number;
-  expiredUsers: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
-  totalRecommendations: number;
-  averageWinRate: number;
-  newUsersThisMonth: number;
-  newUsersLastMonth: number;
-  buySignalCount: number;
-  sellSignalCount: number;
-  buyWinRate: number;
-  sellWinRate: number;
+export type SubscriptionStatusSubscriptionType = typeof SubscriptionStatusSubscriptionType[keyof typeof SubscriptionStatusSubscriptionType];
+
+
+export const SubscriptionStatusSubscriptionType = {
+  trial: 'trial',
+  premium: 'premium',
+  expired: 'expired',
+} as const;
+
+export interface SubscriptionStatus {
+  subscriptionType: SubscriptionStatusSubscriptionType;
 }
 
-export interface AdminUserList {
-  data: AdminUser[];
+export interface RecommendationList {
+  data: Recommendation[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
-}
-
-export interface AdminUpdateUserRequest {
-  isBlocked?: boolean;
-  subscriptionType?: SubscriptionType;
-  premiumExpiryDate?: string;
-}
-
-export type RevenueAnalyticsMonthlyItem = {
-  month: string;
-  revenue: number;
-  newSubscriptions: number;
-  renewals: number;
-};
-
-export interface RevenueAnalytics {
-  monthly: RevenueAnalyticsMonthlyItem[];
-  totalRevenue: number;
-  avgMonthlyRevenue: number;
-}
-
-export type UserGrowthAnalyticsMonthlyItem = {
-  month: string;
-  newUsers: number;
-  totalUsers: number;
-  premiumConversions: number;
-};
-
-export interface UserGrowthAnalytics {
-  monthly: UserGrowthAnalyticsMonthlyItem[];
-}
-
-export interface SubscriptionStatus {
-  subscriptionType: SubscriptionType;
-  trialStartDate?: string | null;
-  trialExpiryDate?: string | null;
-  premiumExpiryDate?: string | null;
-  daysRemaining?: number | null;
-  isActive: boolean;
-}
-
-export interface PaymentOrder {
-  orderId: string;
-  amount: number;
-  currency: string;
-  keyId: string;
-}
-
-export interface VerifyPaymentRequest {
-  razorpayOrderId: string;
-  razorpayPaymentId: string;
-  razorpaySignature: string;
-}
-
-export type PaymentStatus = typeof PaymentStatus[keyof typeof PaymentStatus];
-
-
-export const PaymentStatus = {
-  pending: 'pending',
-  success: 'success',
-  failed: 'failed',
-} as const;
-
-export interface Payment {
-  id: number;
-  amount: number;
-  currency: string;
-  status: PaymentStatus;
-  razorpayOrderId?: string | null;
-  razorpayPaymentId?: string | null;
-  createdAt: string;
-}
-
-export type SendNotificationRequestTargetType = typeof SendNotificationRequestTargetType[keyof typeof SendNotificationRequestTargetType];
-
-
-export const SendNotificationRequestTargetType = {
-  all: 'all',
-  premium: 'premium',
-  trial: 'trial',
-  specific: 'specific',
-} as const;
-
-export interface SendNotificationRequest {
-  title: string;
-  body: string;
-  targetType?: SendNotificationRequestTargetType;
-  userIds?: number[];
-}
-
-export interface Notification {
-  id: number;
-  title: string;
-  body: string;
-  targetType: string;
-  sentCount: number;
-  createdAt: string;
-}
-
-export interface ReferralStats {
-  code: string;
-  totalReferrals: number;
-  rewardedReferrals: number;
-  pendingReferrals: number;
-  totalDaysEarned: number;
-}
-
-export interface ApplyReferralRequest {
-  code: string;
-}
-
-export type ReferralItemStatus = typeof ReferralItemStatus[keyof typeof ReferralItemStatus];
-
-
-export const ReferralItemStatus = {
-  pending: 'pending',
-  rewarded: 'rewarded',
-} as const;
-
-export interface ReferralItem {
-  id: number;
-  referredName: string;
-  referredPhone: string;
-  status: ReferralItemStatus;
-  rewardDays: number;
-  createdAt: string;
-  rewardedAt?: string | null;
-}
-
-export type AdminReferralItemStatus = typeof AdminReferralItemStatus[keyof typeof AdminReferralItemStatus];
-
-
-export const AdminReferralItemStatus = {
-  pending: 'pending',
-  rewarded: 'rewarded',
-} as const;
-
-export interface AdminReferralItem {
-  id: number;
-  referrerName: string;
-  referrerPhone: string;
-  referredName: string;
-  referredPhone: string;
-  status: AdminReferralItemStatus;
-  rewardDays: number;
-  createdAt: string;
 }
 
 export type ListRecommendationsParams = {
@@ -399,21 +221,4 @@ signalType?: SignalType;
 page?: number;
 limit?: number;
 };
-
-export type AdminListUsersParams = {
-page?: number;
-limit?: number;
-search?: string;
-status?: AdminListUsersStatus;
-};
-
-export type AdminListUsersStatus = typeof AdminListUsersStatus[keyof typeof AdminListUsersStatus];
-
-
-export const AdminListUsersStatus = {
-  all: 'all',
-  trial: 'trial',
-  premium: 'premium',
-  expired: 'expired',
-} as const;
 

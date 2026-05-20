@@ -5,13 +5,8 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { SubscriptionType } from './subscriptionType';
+import type { SubscriptionStatusSubscriptionType } from './subscriptionStatusSubscriptionType';
 
 export interface SubscriptionStatus {
-  subscriptionType: SubscriptionType;
-  trialStartDate?: Date | null;
-  trialExpiryDate?: Date | null;
-  premiumExpiryDate?: Date | null;
-  daysRemaining?: number | null;
-  isActive: boolean;
+  subscriptionType: SubscriptionStatusSubscriptionType;
 }

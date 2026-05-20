@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { RecommendationStatus } from './recommendationStatus';
-import type { RiskLevel } from './riskLevel';
 import type { SignalType } from './signalType';
 import type { TradeType } from './tradeType';
 
@@ -19,8 +18,10 @@ export interface Recommendation {
   targetPrice: number;
   stopLoss: number;
   tradeType: TradeType;
-  riskLevel: RiskLevel;
+  riskLevel: string;
   notes?: string | null;
+  screenshotUrl?: string | null;
+  screenshots?: string[] | null;
   status: RecommendationStatus;
   exitPrice?: number | null;
   pnlPercent?: number | null;

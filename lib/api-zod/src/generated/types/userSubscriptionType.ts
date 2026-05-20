@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type SubscriptionType = typeof SubscriptionType[keyof typeof SubscriptionType];
+export type UserSubscriptionType = typeof UserSubscriptionType[keyof typeof UserSubscriptionType];
 
 
-export const SubscriptionType = {
+export const UserSubscriptionType = {
   trial: 'trial',
   premium: 'premium',
   expired: 'expired',

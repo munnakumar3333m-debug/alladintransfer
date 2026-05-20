@@ -5,15 +5,15 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { DashboardStatsSubscriptionType } from './dashboardStatsSubscriptionType';
 import type { Recommendation } from './recommendation';
-import type { SubscriptionType } from './subscriptionType';
 
 export interface DashboardStats {
   todayRecommendationsCount: number;
   monthlyProfitPercent: number;
   totalTrades: number;
   winRate: number;
-  subscriptionType: SubscriptionType;
+  subscriptionType: DashboardStatsSubscriptionType;
   trialDaysRemaining?: number | null;
   premiumDaysRemaining?: number | null;
   bestTrade?: Recommendation | null;
