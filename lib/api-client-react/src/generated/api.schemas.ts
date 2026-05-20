@@ -173,10 +173,19 @@ export interface DashboardStats {
   recentActivity?: Recommendation[];
 }
 
-export type PerformanceDataMonthsItem = { [key: string]: unknown };
+export interface PerformanceDataMonth {
+  month: string;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnlPercent: number;
+  bestTradePercent: number;
+  worstTradePercent: number;
+}
 
 export interface PerformanceData {
-  months: PerformanceDataMonthsItem[];
+  months: PerformanceDataMonth[];
 }
 
 export type WinRateHistoryMonthsItem = { [key: string]: unknown };

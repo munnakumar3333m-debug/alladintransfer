@@ -5,8 +5,8 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { PerformanceDataMonthsItem } from './performanceDataMonthsItem';
+import type { PerformanceDataMonth } from './performanceDataMonth';
 
 export interface PerformanceData {
-  months: PerformanceDataMonthsItem[];
+  months: PerformanceDataMonth[];
 }

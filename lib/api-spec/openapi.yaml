@@ -713,7 +713,27 @@ components:
         months:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/PerformanceDataMonth"
+    PerformanceDataMonth:
+      type: object
+      required: [month, totalTrades, wins, losses, winRate, totalPnlPercent, bestTradePercent, worstTradePercent]
+      properties:
+        month:
+          type: string
+        totalTrades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        totalPnlPercent:
+          type: number
+        bestTradePercent:
+          type: number
+        worstTradePercent:
+          type: number
     WinRateHistory:
       type: object
       required: [months]

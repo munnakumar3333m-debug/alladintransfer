@@ -2,6 +2,7 @@ import {
   useGetDashboardStats,
   useGetPerformanceData,
 } from "@workspace/api-client-react";
+import { GetPerformanceDataResponse } from "@workspace/api-zod";
 import {
   Bar,
   BarChart,
@@ -23,7 +24,14 @@ const RADIAN = Math.PI / 180;
 
 export default function AnalyticsPage() {
   const { data: stats } = useGetDashboardStats();
-  const { data: performanceData } = useGetPerformanceData();
+  const { data: performanceRaw, isLoading: performanceLoading, isError: performanceError } = useGetPerformanceData();
+
+  const performanceParsed = performanceRaw
+    ? GetPerformanceDataResponse.safeParse(performanceRaw)
+    : undefined;
+  const performanceInvalid = performanceParsed?.success === false;
+  const performanceMonths = performanceParsed?.success ? performanceParsed.data.months : [];
+
   const signalCompareData = [
     {
       name: "BUY",
@@ -39,10 +47,10 @@ export default function AnalyticsPage() {
     sellSignalCount: stats?.sellWinRate ? 1 : 0,
   };
   const revenue = {
-    monthly: Array.isArray(performanceData) ? performanceData.map((month) => ({
+    monthly: performanceMonths.map((month) => ({
       month: month.month,
       revenue: month.totalPnlPercent ?? 0,
-    })) : [],
+    })),
   };
 
   const pieData = stats
@@ -186,20 +194,24 @@ export default function AnalyticsPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-1">Monthly P&L Performance</h2>
           <p className="text-slate-400 text-xs mb-5">Average return % per month</p>
-          {Array.isArray(performanceData) && performanceData.length > 0 ? (
+          {performanceInvalid ? (
+            <InvalidChart />
+          ) : performanceLoading || performanceError ? (
+            <EmptyChart />
+          ) : performanceMonths.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={performanceData.slice(-12)}>
+              <BarChart data={performanceMonths.slice(-12)}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 10 }} />
                 <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
                   labelStyle={{ color: "#94a3b8" }}
-                  formatter={(val: number) => [`${val?.toFixed(2)}%`, "Avg P&L"]}
+                  formatter={(val: number) => [`${val?.toFixed(2)}%`, "Total P&L"]}
                 />
-                <Bar dataKey="avgPnl" radius={[4, 4, 0, 0]}>
-                  {performanceData.slice(-12).map((p, i) => (
-                    <Cell key={i} fill={(p.avgPnl ?? 0) >= 0 ? "#10b981" : "#ef4444"} />
+                <Bar dataKey="totalPnlPercent" radius={[4, 4, 0, 0]}>
+                  {performanceMonths.slice(-12).map((p, i) => (
+                    <Cell key={i} fill={(p.totalPnlPercent ?? 0) >= 0 ? "#10b981" : "#ef4444"} />
                   ))}
                 </Bar>
               </BarChart>
@@ -252,7 +264,9 @@ export default function AnalyticsPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 xl:col-span-2">
           <h2 className="text-white font-semibold mb-1">Revenue Trend</h2>
           <p className="text-slate-400 text-xs mb-5">Monthly revenue (₹)</p>
-          {revenue?.monthly && revenue.monthly.length > 0 ? (
+          {performanceInvalid ? (
+            <InvalidChart />
+          ) : revenue?.monthly && revenue.monthly.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={revenue.monthly}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -280,6 +294,15 @@ function EmptyChart() {
   return (
     <div className="h-[240px] flex items-center justify-center border border-dashed border-slate-700 rounded-xl">
       <p className="text-slate-500 text-sm">No data yet</p>
+    </div>
+  );
+}
+
+function InvalidChart() {
+  return (
+    <div className="h-[240px] flex flex-col items-center justify-center border border-dashed border-red-500/40 bg-red-500/5 rounded-xl gap-1">
+      <p className="text-red-400 text-sm font-semibold">Unable to display chart</p>
+      <p className="text-slate-500 text-xs">Performance data from the server did not match the expected format.</p>
     </div>
   );
 }

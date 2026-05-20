@@ -17,7 +17,7 @@ export * from './listRecommendationsParams';
 export * from './loginRequest';
 export * from './messageResponse';
 export * from './performanceData';
-export * from './performanceDataMonthsItem';
+export * from './performanceDataMonth';
 export * from './recommendation';
 export * from './recommendationList';
 export * from './recommendationStatus';
