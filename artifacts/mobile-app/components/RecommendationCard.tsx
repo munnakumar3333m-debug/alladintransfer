@@ -43,8 +43,6 @@ export function RecommendationCard({ rec, onPress }: Props) {
   const signalColor = isBuy ? "#10B981" : "#EF4444";
   const signalBg = isBuy ? "#10B98120" : "#EF444420";
   const signalBorder = isBuy ? "#10B98140" : "#EF444440";
-  const signalGlow = isBuy ? "#10B98115" : "#EF444415";
-
   const statusColor =
     rec.status === "target_hit"
       ? colors.positive
@@ -72,10 +70,9 @@ export function RecommendationCard({ rec, onPress }: Props) {
         <View style={styles.signalLeft}>
           <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}>
             <Feather
-              name={isBuy ? "triangle" : "triangle"}
+              name={isBuy ? "arrow-up" : "arrow-down"}
               size={18}
               color={signalColor}
-              style={isBuy ? styles.upIcon : styles.downIcon}
             />
           </View>
           <Text style={[styles.signalLabel, { color: signalColor }]}>
@@ -237,12 +234,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-  },
-  upIcon: {
-    transform: [{ rotate: "0deg" }],
-  },
-  downIcon: {
-    transform: [{ rotate: "180deg" }],
   },
   stockRow: {
     flexDirection: "row",
