@@ -70,7 +70,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
         <View style={styles.signalLeft}>
           <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}>
             <Feather
-              name={isBuy ? "triangle" : "triangle"}
+              name="triangle"
               size={18}
               color={signalColor}
             />
