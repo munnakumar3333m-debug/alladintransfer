@@ -184,7 +184,7 @@ export default function ProfileScreen() {
       </View>
 
       <Text style={[styles.version, { color: colors.mutedForeground }]}>
-        AlphaTrade Pro v1.0
+        Alladin v1.0
       </Text>
     </ScrollView>
   );

@@ -71,7 +71,7 @@ export default function LoginScreen() {
           <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
             <Feather name="trending-up" size={32} color={colors.primaryForeground} />
           </View>
-          <Text style={[styles.appName, { color: colors.foreground }]}>AlphaTrade Pro</Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>Alladin</Text>
           <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
             Premium Stock Intelligence
           </Text>

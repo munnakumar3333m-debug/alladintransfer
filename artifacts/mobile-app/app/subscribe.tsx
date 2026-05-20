@@ -83,7 +83,7 @@ export default function SubscribeScreen() {
             <Feather name="zap" size={36} color={colors.primaryForeground} />
           </View>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            AlphaTrade Pro
+            Alladin
           </Text>
           <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
             {isExpired
