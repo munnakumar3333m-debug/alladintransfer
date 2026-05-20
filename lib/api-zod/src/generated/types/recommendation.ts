@@ -7,12 +7,14 @@
  */
 import type { RecommendationStatus } from './recommendationStatus';
 import type { RiskLevel } from './riskLevel';
+import type { SignalType } from './signalType';
 import type { TradeType } from './tradeType';
 
 export interface Recommendation {
   id: number;
   stockName: string;
   nseSymbol: string;
+  signalType: SignalType;
   buyPrice: number;
   targetPrice: number;
   stopLoss: number;

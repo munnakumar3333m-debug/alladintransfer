@@ -45,6 +45,7 @@ export * from './revenueAnalyticsMonthlyItem';
 export * from './riskLevel';
 export * from './sendNotificationRequest';
 export * from './sendNotificationRequestTargetType';
+export * from './signalType';
 export * from './subscriptionStatus';
 export * from './subscriptionType';
 export * from './tradeType';

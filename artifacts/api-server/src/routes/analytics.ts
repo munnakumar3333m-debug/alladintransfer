@@ -18,6 +18,7 @@ function formatRec(r: typeof recommendationsTable.$inferSelect) {
     id: r.id,
     stockName: r.stockName,
     nseSymbol: r.nseSymbol,
+    signalType: (r.signalType ?? "BUY") as "BUY" | "SELL",
     buyPrice: parseFloat(r.buyPrice),
     targetPrice: parseFloat(r.targetPrice),
     stopLoss: parseFloat(r.stopLoss),
@@ -205,6 +206,16 @@ router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
   const newThisMonth = users.filter(u => u.createdAt >= startOfMonth).length;
   const newLastMonth = users.filter(u => u.createdAt >= startOfLastMonth && u.createdAt < startOfMonth).length;
 
+  const allRecs = await db.select().from(recommendationsTable);
+  const buyRecs = allRecs.filter(r => (r.signalType ?? "BUY") === "BUY");
+  const sellRecs = allRecs.filter(r => r.signalType === "SELL");
+  const buyClosedRecs = buyRecs.filter(r => r.pnlPercent != null);
+  const sellClosedRecs = sellRecs.filter(r => r.pnlPercent != null);
+  const buyWins = buyClosedRecs.filter(r => parseFloat(r.pnlPercent!) > 0).length;
+  const sellWins = sellClosedRecs.filter(r => parseFloat(r.pnlPercent!) > 0).length;
+  const buyWinRate = buyClosedRecs.length > 0 ? (buyWins / buyClosedRecs.length) * 100 : 0;
+  const sellWinRate = sellClosedRecs.length > 0 ? (sellWins / sellClosedRecs.length) * 100 : 0;
+
   res.json(GetAdminStatsResponse.parse({
     totalUsers: users.length,
     activeTrialUsers: trialUsers,
@@ -212,10 +223,14 @@ router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
     expiredUsers,
     totalRevenue: parseFloat(totalRevenue.toFixed(2)),
     monthlyRevenue: parseFloat(monthRevenue.toFixed(2)),
-    totalRecommendations: await db.select({ count: sql<number>`count(*)::int` }).from(recommendationsTable).then(r => r[0]?.count ?? 0),
+    totalRecommendations: allRecs.length,
     averageWinRate: parseFloat(avgWinRate.toFixed(1)),
     newUsersThisMonth: newThisMonth,
     newUsersLastMonth: newLastMonth,
+    buySignalCount: buyRecs.length,
+    sellSignalCount: sellRecs.length,
+    buyWinRate: parseFloat(buyWinRate.toFixed(1)),
+    sellWinRate: parseFloat(sellWinRate.toFixed(1)),
   }));
 });
 

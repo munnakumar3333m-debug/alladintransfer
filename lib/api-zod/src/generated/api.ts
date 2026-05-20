@@ -107,6 +107,7 @@ export const ListRecommendationsQueryParams = zod.object({
   "month": zod.coerce.string().optional().describe('Filter by month (YYYY-MM)'),
   "tradeType": zod.enum(['intraday', 'swing', 'positional']).optional(),
   "status": zod.enum(['active', 'target_hit', 'stop_loss_hit', 'hold', 'partial_profit', 'closed']).optional(),
+  "signalType": zod.enum(['BUY', 'SELL']).optional(),
   "page": zod.coerce.number().default(listRecommendationsQueryPageDefault),
   "limit": zod.coerce.number().default(listRecommendationsQueryLimitDefault)
 })
@@ -116,6 +117,7 @@ export const ListRecommendationsResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -143,6 +145,7 @@ export const ListRecommendationsResponse = zod.object({
 export const CreateRecommendationBody = zod.object({
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -160,6 +163,7 @@ export const GetTodayRecommendationsResponseItem = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -188,6 +192,7 @@ export const GetRecommendationResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -214,6 +219,7 @@ export const UpdateRecommendationParams = zod.object({
 export const UpdateRecommendationBody = zod.object({
   "stockName": zod.string().optional(),
   "nseSymbol": zod.string().optional(),
+  "signalType": zod.enum(['BUY', 'SELL']).optional(),
   "buyPrice": zod.number().optional(),
   "targetPrice": zod.number().optional(),
   "stopLoss": zod.number().optional(),
@@ -227,6 +233,7 @@ export const UpdateRecommendationResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -268,6 +275,7 @@ export const UpdateRecommendationPnlResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -299,6 +307,7 @@ export const GetDashboardStatsResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -317,6 +326,7 @@ export const GetDashboardStatsResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -335,6 +345,7 @@ export const GetDashboardStatsResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -391,6 +402,7 @@ export const GetMonthlyReportResponse = zod.object({
   "id": zod.number(),
   "stockName": zod.string(),
   "nseSymbol": zod.string(),
+  "signalType": zod.enum(['BUY', 'SELL']),
   "buyPrice": zod.number(),
   "targetPrice": zod.number(),
   "stopLoss": zod.number(),
@@ -421,7 +433,11 @@ export const GetAdminStatsResponse = zod.object({
   "totalRecommendations": zod.number(),
   "averageWinRate": zod.number(),
   "newUsersThisMonth": zod.number(),
-  "newUsersLastMonth": zod.number()
+  "newUsersLastMonth": zod.number(),
+  "buySignalCount": zod.number(),
+  "sellSignalCount": zod.number(),
+  "buyWinRate": zod.number(),
+  "sellWinRate": zod.number()
 })
 
 

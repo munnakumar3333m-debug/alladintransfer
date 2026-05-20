@@ -6,6 +6,7 @@ export const recommendationsTable = pgTable("recommendations", {
   id: serial("id").primaryKey(),
   stockName: text("stock_name").notNull(),
   nseSymbol: text("nse_symbol").notNull(),
+  signalType: text("signal_type").notNull().default("BUY"),
   buyPrice: numeric("buy_price", { precision: 10, scale: 2 }).notNull(),
   targetPrice: numeric("target_price", { precision: 10, scale: 2 }).notNull(),
   stopLoss: numeric("stop_loss", { precision: 10, scale: 2 }).notNull(),

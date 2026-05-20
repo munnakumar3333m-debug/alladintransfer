@@ -25,12 +25,26 @@ const TRADE_COLOR: Record<string, string> = {
   positional: "#06B6D4",
 };
 
+const RISK_COLOR: Record<string, string> = {
+  low: "#10B981",
+  medium: "#F59E0B",
+  high: "#EF4444",
+};
+
 export function RecommendationCard({ rec, onPress }: Props) {
   const colors = useColors();
 
-  const pnl = rec.pnlPercent ? parseFloat(rec.pnlPercent) : null;
+  const pnl = rec.pnlPercent ? parseFloat(String(rec.pnlPercent)) : null;
   const isPositive = pnl !== null && pnl >= 0;
   const tradeColor = TRADE_COLOR[rec.tradeType] ?? colors.mutedForeground;
+  const riskColor = RISK_COLOR[rec.riskLevel] ?? colors.mutedForeground;
+
+  const isBuy = rec.signalType === "BUY";
+  const signalColor = isBuy ? "#10B981" : "#EF4444";
+  const signalBg = isBuy ? "#10B98120" : "#EF444420";
+  const signalBorder = isBuy ? "#10B98140" : "#EF444440";
+  const signalGlow = isBuy ? "#10B98115" : "#EF444415";
+
   const statusColor =
     rec.status === "target_hit"
       ? colors.positive
@@ -44,16 +58,31 @@ export function RecommendationCard({ rec, onPress }: Props) {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
-      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: signalBorder,
+          shadowColor: signalColor,
+        },
+      ]}
     >
-      <View style={styles.header}>
-        <View style={styles.symbolRow}>
-          <Text style={[styles.symbol, { color: colors.foreground }]}>
-            {rec.nseSymbol}
-          </Text>
-          <View style={[styles.badge, { backgroundColor: tradeColor + "22" }]}>
-            <Text style={[styles.badgeText, { color: tradeColor }]}>
-              {rec.tradeType.toUpperCase()}
+      {/* Signal Banner */}
+      <View style={[styles.signalBanner, { backgroundColor: signalBg, borderColor: signalBorder }]}>
+        <View style={styles.signalLeft}>
+          <View style={[styles.signalIconWrap, { backgroundColor: signalColor + "25" }]}>
+            <Feather
+              name={isBuy ? "arrow-up" : "arrow-down"}
+              size={18}
+              color={signalColor}
+            />
+          </View>
+          <View>
+            <Text style={[styles.signalLabel, { color: signalColor }]}>
+              {isBuy ? "▲ BUY SIGNAL" : "▼ SELL SIGNAL"}
+            </Text>
+            <Text style={[styles.signalSub, { color: signalColor + "99" }]}>
+              {isBuy ? "Bullish · Long Position" : "Bearish · Short Position"}
             </Text>
           </View>
         </View>
@@ -64,21 +93,64 @@ export function RecommendationCard({ rec, onPress }: Props) {
         </View>
       </View>
 
-      <Text style={[styles.stockName, { color: colors.mutedForeground }]} numberOfLines={1}>
-        {rec.stockName}
-      </Text>
+      {/* Stock identity */}
+      <View style={styles.stockRow}>
+        <View style={styles.symbolWrap}>
+          <Text style={[styles.symbol, { color: colors.foreground }]}>
+            {rec.nseSymbol}
+          </Text>
+          <Text style={[styles.stockName, { color: colors.mutedForeground }]} numberOfLines={1}>
+            {rec.stockName}
+          </Text>
+        </View>
+        <View style={styles.badgesRow}>
+          <View style={[styles.badge, { backgroundColor: tradeColor + "22" }]}>
+            <Text style={[styles.badgeText, { color: tradeColor }]}>
+              {rec.tradeType.toUpperCase()}
+            </Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: riskColor + "22" }]}>
+            <Text style={[styles.badgeText, { color: riskColor }]}>
+              {rec.riskLevel.toUpperCase()}
+            </Text>
+          </View>
+        </View>
+      </View>
 
-      <View style={styles.priceRow}>
-        <PriceItem label="Buy" value={`₹${rec.buyPrice}`} color={colors.mutedForeground} foreground={colors.foreground} />
-        <PriceItem label="Target" value={`₹${rec.targetPrice}`} color={colors.mutedForeground} foreground={colors.positive} />
-        <PriceItem label="SL" value={`₹${rec.stopLoss}`} color={colors.mutedForeground} foreground={colors.negative} />
+      {/* Price grid */}
+      <View style={[styles.priceGrid, { borderColor: colors.border }]}>
+        <PriceCell
+          label="Entry Price"
+          value={`₹${rec.buyPrice}`}
+          labelColor={colors.mutedForeground}
+          valueColor={colors.foreground}
+        />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <PriceCell
+          label="Target"
+          value={`₹${rec.targetPrice}`}
+          labelColor={colors.mutedForeground}
+          valueColor="#10B981"
+          icon="target"
+        />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <PriceCell
+          label="Stop Loss"
+          value={`₹${rec.stopLoss}`}
+          labelColor={colors.mutedForeground}
+          valueColor="#EF4444"
+          icon="shield"
+        />
         {pnl !== null && (
-          <PriceItem
-            label="P&L"
-            value={`${isPositive ? "+" : ""}${pnl.toFixed(2)}%`}
-            color={colors.mutedForeground}
-            foreground={isPositive ? colors.positive : colors.negative}
-          />
+          <>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <PriceCell
+              label="P&L"
+              value={`${isPositive ? "+" : ""}${pnl.toFixed(2)}%`}
+              labelColor={colors.mutedForeground}
+              valueColor={isPositive ? "#10B981" : "#EF4444"}
+            />
+          </>
         )}
       </View>
 
@@ -92,57 +164,117 @@ export function RecommendationCard({ rec, onPress }: Props) {
         <Feather name="calendar" size={11} color={colors.mutedForeground} />
         <Text style={[styles.date, { color: colors.mutedForeground }]}> {rec.date}</Text>
         <View style={styles.spacer} />
-        <Feather name="chevron-right" size={14} color={colors.mutedForeground} />
+        <Text style={[styles.tapHint, { color: colors.mutedForeground }]}>View details</Text>
+        <Feather name="chevron-right" size={13} color={colors.mutedForeground} />
       </View>
     </TouchableOpacity>
   );
 }
 
-function PriceItem({
+function PriceCell({
   label,
   value,
-  color,
-  foreground,
+  labelColor,
+  valueColor,
+  icon,
 }: {
   label: string;
   value: string;
-  color: string;
-  foreground: string;
+  labelColor: string;
+  valueColor: string;
+  icon?: string;
 }) {
   return (
-    <View style={styles.priceItem}>
-      <Text style={[styles.priceLabel, { color }]}>{label}</Text>
-      <Text style={[styles.priceValue, { color: foreground }]}>{value}</Text>
+    <View style={styles.priceCell}>
+      <View style={styles.priceLabelRow}>
+        {icon && <Feather name={icon as any} size={9} color={labelColor} style={{ marginRight: 3 }} />}
+        <Text style={[styles.priceLabel, { color: labelColor }]}>{label}</Text>
+      </View>
+      <Text style={[styles.priceValue, { color: valueColor }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    gap: 8,
+    borderRadius: 16,
+    marginBottom: 14,
+    borderWidth: 1.5,
+    overflow: "hidden",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  header: {
+  signalBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
-  symbolRow: {
+  signalLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
+  },
+  signalIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signalLabel: {
+    fontSize: 15,
+    fontWeight: "800",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
+  },
+  signalSub: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    marginTop: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  stockRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  symbolWrap: {
+    flex: 1,
+    gap: 1,
   },
   symbol: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
+  stockName: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  badgesRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
   badge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 6,
   },
   badgeText: {
@@ -150,51 +282,59 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
-  },
-  stockName: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-  },
-  priceRow: {
+  priceGrid: {
     flexDirection: "row",
-    gap: 16,
-    paddingTop: 4,
+    marginHorizontal: 14,
+    marginTop: 10,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: "hidden",
   },
-  priceItem: {
-    gap: 2,
+  priceCell: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 4,
+  },
+  priceLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  divider: {
+    width: 1,
   },
   priceLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
   },
   priceValue: {
     fontSize: 13,
-    fontWeight: "600",
-    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
   },
   notes: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     lineHeight: 18,
-    paddingTop: 4,
+    paddingHorizontal: 14,
+    paddingTop: 6,
   },
   footer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingTop: 10,
   },
   date: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   spacer: { flex: 1 },
+  tapHint: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    marginRight: 2,
+  },
 });

@@ -7,6 +7,8 @@ import {
 import type { Recommendation } from "@workspace/api-client-react";
 import { useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   ChevronLeft,
   ChevronRight,
   Edit3,
@@ -39,10 +41,15 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function RecommendationsPage() {
   const [page, setPage] = useState(1);
+  const [signalFilter, setSignalFilter] = useState<"" | "BUY" | "SELL">("");
   const [showCreate, setShowCreate] = useState(false);
   const [pnlModal, setPnlModal] = useState<Recommendation | null>(null);
 
-  const { data, isLoading, refetch } = useListRecommendations({ page, limit: 20 });
+  const { data, isLoading, refetch } = useListRecommendations({
+    page,
+    limit: 20,
+    ...(signalFilter ? { signalType: signalFilter } : {}),
+  });
   const { mutate: create, isPending: creating } = useCreateRecommendation({
     mutation: { onSuccess: () => { refetch(); setShowCreate(false); } },
   });
@@ -71,6 +78,29 @@ export default function RecommendationsPage() {
         </Button>
       </div>
 
+      {/* Signal filters */}
+      <div className="flex gap-2">
+        {(["", "BUY", "SELL"] as const).map((f) => (
+          <button
+            key={f || "all"}
+            onClick={() => { setSignalFilter(f); setPage(1); }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              signalFilter === f
+                ? f === "BUY"
+                  ? "bg-emerald-500 text-slate-950"
+                  : f === "SELL"
+                    ? "bg-red-500 text-white"
+                    : "bg-slate-700 text-white"
+                : "bg-slate-900 border border-slate-700 text-slate-400 hover:border-slate-500"
+            }`}
+          >
+            {f === "BUY" && <ArrowUp className="w-3.5 h-3.5" />}
+            {f === "SELL" && <ArrowDown className="w-3.5 h-3.5" />}
+            {f === "" ? "All Signals" : `${f} Signals`}
+          </button>
+        ))}
+      </div>
+
       {showCreate && (
         <CreateForm
           onCreate={(d) => create({ data: d })}
@@ -92,12 +122,12 @@ export default function RecommendationsPage() {
         {isLoading ? (
           <div className="p-8 text-center text-slate-500">Loading...</div>
         ) : recs.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No recommendations yet</div>
+          <div className="p-8 text-center text-slate-500">No recommendations found</div>
         ) : (
-          <table className="w-full text-sm min-w-[900px]">
+          <table className="w-full text-sm min-w-[1000px]">
             <thead>
               <tr className="border-b border-slate-800">
-                {["Symbol", "Stock", "Buy", "Target", "SL", "Type", "Status", "P&L", "Date", ""].map((h) => (
+                {["Signal", "Symbol", "Stock", "Entry", "Target", "SL", "Type", "Status", "P&L", "Date", ""].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium whitespace-nowrap">
                     {h}
                   </th>
@@ -106,10 +136,21 @@ export default function RecommendationsPage() {
             </thead>
             <tbody>
               {recs.map((r) => {
-                const pnl = r.pnlPercent ? parseFloat(r.pnlPercent) : null;
+                const pnl = r.pnlPercent ? parseFloat(String(r.pnlPercent)) : null;
                 const pos = pnl !== null && pnl >= 0;
+                const isBuy = r.signalType === "BUY";
                 return (
                   <tr key={r.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition-colors">
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold ${
+                        isBuy
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                          : "bg-red-500/15 text-red-400 border border-red-500/30"
+                      }`}>
+                        {isBuy ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                        {r.signalType}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-white font-bold">{r.nseSymbol}</td>
                     <td className="px-4 py-3 text-slate-300 max-w-[140px] truncate">{r.stockName}</td>
                     <td className="px-4 py-3 text-slate-300">₹{r.buyPrice}</td>
@@ -201,6 +242,7 @@ function CreateForm({
   onClose: () => void;
 }) {
   const today = new Date().toISOString().split("T")[0];
+  const [signalType, setSignalType] = useState<"BUY" | "SELL">("BUY");
   const [form, setForm] = useState({
     stockName: "",
     nseSymbol: "",
@@ -220,6 +262,7 @@ function CreateForm({
     e.preventDefault();
     onCreate({
       ...form,
+      signalType,
       buyPrice: parseFloat(form.buyPrice),
       targetPrice: parseFloat(form.targetPrice),
       stopLoss: parseFloat(form.stopLoss),
@@ -229,42 +272,76 @@ function CreateForm({
   return (
     <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6">
       <h3 className="text-white font-semibold mb-4">New Recommendation</h3>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <FormField label="Stock Name" value={form.stockName} onChange={set("stockName")} required />
-        <FormField label="NSE Symbol" value={form.nseSymbol} onChange={set("nseSymbol")} required />
-        <FormField label="Date" type="date" value={form.date} onChange={set("date")} required />
-        <FormField label="Buy Price" type="number" value={form.buyPrice} onChange={set("buyPrice")} required />
-        <FormField label="Target Price" type="number" value={form.targetPrice} onChange={set("targetPrice")} required />
-        <FormField label="Stop Loss" type="number" value={form.stopLoss} onChange={set("stopLoss")} required />
-        <div className="space-y-1.5">
-          <Label className="text-slate-300 text-xs">Trade Type</Label>
-          <select value={form.tradeType} onChange={set("tradeType") as any}
-            className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2">
-            <option value="intraday">Intraday</option>
-            <option value="swing">Swing</option>
-            <option value="positional">Positional</option>
-          </select>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Signal Type Selector */}
+        <div className="space-y-2">
+          <Label className="text-slate-300 text-xs">Signal Type</Label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSignalType("BUY")}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all border-2 ${
+                signalType === "BUY"
+                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
+                  : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500"
+              }`}
+            >
+              <ArrowUp className="w-4 h-4" />
+              BUY SIGNAL
+            </button>
+            <button
+              type="button"
+              onClick={() => setSignalType("SELL")}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all border-2 ${
+                signalType === "SELL"
+                  ? "bg-red-500/20 border-red-500 text-red-400"
+                  : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500"
+              }`}
+            >
+              <ArrowDown className="w-4 h-4" />
+              SELL SIGNAL
+            </button>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-slate-300 text-xs">Risk Level</Label>
-          <select value={form.riskLevel} onChange={set("riskLevel") as any}
-            className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <FormField label="Stock Name" value={form.stockName} onChange={set("stockName")} required />
+          <FormField label="NSE Symbol" value={form.nseSymbol} onChange={set("nseSymbol")} required />
+          <FormField label="Date" type="date" value={form.date} onChange={set("date")} required />
+          <FormField label="Entry Price" type="number" value={form.buyPrice} onChange={set("buyPrice")} required />
+          <FormField label="Target Price" type="number" value={form.targetPrice} onChange={set("targetPrice")} required />
+          <FormField label="Stop Loss" type="number" value={form.stopLoss} onChange={set("stopLoss")} required />
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-xs">Trade Type</Label>
+            <select value={form.tradeType} onChange={set("tradeType") as any}
+              className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2">
+              <option value="intraday">Intraday</option>
+              <option value="swing">Swing</option>
+              <option value="positional">Positional</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-xs">Risk Level</Label>
+            <select value={form.riskLevel} onChange={set("riskLevel") as any}
+              className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div className="space-y-1.5 col-span-2 md:col-span-3">
+            <Label className="text-slate-300 text-xs">Notes (optional)</Label>
+            <textarea value={form.notes} onChange={set("notes")}
+              className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-20"
+              placeholder="Analysis notes..." />
+          </div>
         </div>
-        <div className="space-y-1.5 col-span-2 md:col-span-3">
-          <Label className="text-slate-300 text-xs">Notes (optional)</Label>
-          <textarea value={form.notes} onChange={set("notes")}
-            className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-20"
-            placeholder="Analysis notes..." />
-        </div>
-        <div className="col-span-2 md:col-span-3 flex gap-3 justify-end">
+
+        <div className="flex gap-3 justify-end">
           <Button type="button" variant="ghost" onClick={onClose} className="text-slate-400">Cancel</Button>
           <Button type="submit" disabled={isPending}
-            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold">
-            {isPending ? "Creating..." : "Create"}
+            className={`font-semibold ${signalType === "BUY" ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950" : "bg-red-500 hover:bg-red-400 text-white"}`}>
+            {isPending ? "Creating..." : `Create ${signalType} Signal`}
           </Button>
         </div>
       </form>
@@ -288,17 +365,27 @@ function PnlModal({
 
   const handleSave = () => {
     const ep = parseFloat(String(exitPrice));
-    const bp = parseFloat(rec.buyPrice);
+    const bp = parseFloat(String(rec.buyPrice));
     if (isNaN(ep) || isNaN(bp)) return;
     const pnlPercent = ((ep - bp) / bp) * 100;
     const pnlAbsolute = ep - bp;
     onSave({ exitPrice: ep, pnlPercent, pnlAbsolute, status: status as any });
   };
 
+  const isBuy = rec.signalType === "BUY";
+
   return (
-    <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-6 space-y-4">
-      <h3 className="text-white font-semibold">Update P&L — {rec.nseSymbol}</h3>
-      <p className="text-slate-400 text-sm">Buy: ₹{rec.buyPrice} · Target: ₹{rec.targetPrice} · SL: ₹{rec.stopLoss}</p>
+    <div className={`bg-slate-900 border rounded-2xl p-6 space-y-4 ${isBuy ? "border-emerald-500/30" : "border-red-500/30"}`}>
+      <div className="flex items-center gap-3">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+          isBuy ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+        }`}>
+          {isBuy ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+          {rec.signalType}
+        </span>
+        <h3 className="text-white font-semibold">Update P&L — {rec.nseSymbol}</h3>
+      </div>
+      <p className="text-slate-400 text-sm">Entry: ₹{rec.buyPrice} · Target: ₹{rec.targetPrice} · SL: ₹{rec.stopLoss}</p>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-slate-300 text-xs">Exit Price</Label>
@@ -322,7 +409,7 @@ function PnlModal({
           <p className="text-slate-400 text-xs mb-1">Preview P&L</p>
           {(() => {
             const ep = parseFloat(String(exitPrice));
-            const bp = parseFloat(rec.buyPrice);
+            const bp = parseFloat(String(rec.buyPrice));
             const pnl = isNaN(ep) || isNaN(bp) ? null : ((ep - bp) / bp) * 100;
             return pnl !== null ? (
               <p className={`text-lg font-bold ${pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>

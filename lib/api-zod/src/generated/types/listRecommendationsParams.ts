@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { RecommendationStatus } from './recommendationStatus';
+import type { SignalType } from './signalType';
 import type { TradeType } from './tradeType';
 
 export type ListRecommendationsParams = {
@@ -19,6 +20,7 @@ date?: Date;
 month?: string;
 tradeType?: TradeType;
 status?: RecommendationStatus;
+signalType?: SignalType;
 page?: number;
 limit?: number;
 };

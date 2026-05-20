@@ -1,4 +1,5 @@
 import {
+  useGetAdminStats,
   useGetDashboardStats,
   useGetPerformanceData,
   useGetRevenueAnalytics,
@@ -18,11 +19,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 const RADIAN = Math.PI / 180;
 
 export default function AnalyticsPage() {
   const { data: stats } = useGetDashboardStats();
+  const { data: adminStats } = useGetAdminStats();
   const { data: performance } = useGetPerformanceData();
   const { data: revenue } = useGetRevenueAnalytics();
 
@@ -32,6 +35,13 @@ export default function AnalyticsPage() {
         { name: "Stop Loss", value: stats.stopLossCount ?? 0, color: "#ef4444" },
         { name: "Active/Hold", value: stats.activeCount ?? 0, color: "#f59e0b" },
       ].filter((d) => d.value > 0)
+    : [];
+
+  const signalCompareData = adminStats
+    ? [
+        { name: "BUY", count: adminStats.buySignalCount, winRate: adminStats.buyWinRate },
+        { name: "SELL", count: adminStats.sellSignalCount, winRate: adminStats.sellWinRate },
+      ]
     : [];
 
   return (
@@ -69,6 +79,98 @@ export default function AnalyticsPage() {
             <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* BUY vs SELL signal accuracy */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+        <div>
+          <h2 className="text-white font-semibold">BUY vs SELL Signal Performance</h2>
+          <p className="text-slate-400 text-xs mt-1">Accuracy and volume comparison</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* BUY card */}
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <ArrowUp className="w-4 h-4 text-emerald-400" />
+              </div>
+              <span className="text-emerald-400 font-bold text-sm">BUY SIGNALS</span>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-slate-400 text-xs">Total Signals</p>
+                <p className="text-white text-2xl font-bold">{adminStats?.buySignalCount ?? 0}</p>
+              </div>
+              <div>
+                <p className="text-slate-400 text-xs">Win Rate</p>
+                <p className="text-emerald-400 text-2xl font-bold">{adminStats?.buyWinRate?.toFixed(1) ?? 0}%</p>
+              </div>
+            </div>
+            {/* Win rate bar */}
+            <div className="mt-3">
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${Math.min(adminStats?.buyWinRate ?? 0, 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SELL card */}
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+                <ArrowDown className="w-4 h-4 text-red-400" />
+              </div>
+              <span className="text-red-400 font-bold text-sm">SELL SIGNALS</span>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-slate-400 text-xs">Total Signals</p>
+                <p className="text-white text-2xl font-bold">{adminStats?.sellSignalCount ?? 0}</p>
+              </div>
+              <div>
+                <p className="text-slate-400 text-xs">Win Rate</p>
+                <p className="text-red-400 text-2xl font-bold">{adminStats?.sellWinRate?.toFixed(1) ?? 0}%</p>
+              </div>
+            </div>
+            {/* Win rate bar */}
+            <div className="mt-3">
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-red-500 rounded-full transition-all"
+                  style={{ width: `${Math.min(adminStats?.sellWinRate ?? 0, 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Side-by-side bar chart */}
+        {signalCompareData.length > 0 && (adminStats?.buySignalCount ?? 0) + (adminStats?.sellSignalCount ?? 0) > 0 ? (
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={signalCompareData} barCategoryGap="40%">
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 10 }} domain={[0, 100]} unit="%" />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                labelStyle={{ color: "#94a3b8" }}
+                formatter={(val: number) => [`${val?.toFixed(1)}%`, "Win Rate"]}
+              />
+              <Bar dataKey="winRate" radius={[6, 6, 0, 0]}>
+                {signalCompareData.map((entry, i) => (
+                  <Cell key={i} fill={entry.name === "BUY" ? "#10b981" : "#ef4444"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-20 flex items-center justify-center text-slate-500 text-sm">
+            P&L data required to show accuracy
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -111,7 +213,7 @@ export default function AnalyticsPage() {
                   outerRadius={90}
                   dataKey="value"
                   labelLine={false}
-                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                     const r = innerRadius + (outerRadius - innerRadius) * 0.5;
                     const x = cx + r * Math.cos(-midAngle * RADIAN);
                     const y = cy + r * Math.sin(-midAngle * RADIAN);

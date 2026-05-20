@@ -189,6 +189,10 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/RecommendationStatus"
+        - name: signalType
+          in: query
+          schema:
+            $ref: "#/components/schemas/SignalType"
         - name: page
           in: query
           schema:
@@ -813,6 +817,10 @@ components:
       type: string
       enum: [low, medium, high]
 
+    SignalType:
+      type: string
+      enum: [BUY, SELL]
+
     RecommendationStatus:
       type: string
       enum: [active, target_hit, stop_loss_hit, hold, partial_profit, closed]
@@ -907,6 +915,8 @@ components:
           type: string
         nseSymbol:
           type: string
+        signalType:
+          $ref: "#/components/schemas/SignalType"
         buyPrice:
           type: number
         targetPrice:
@@ -940,7 +950,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-      required: [id, stockName, nseSymbol, buyPrice, targetPrice, stopLoss, tradeType, riskLevel, status, date, createdAt, updatedAt]
+      required: [id, stockName, nseSymbol, signalType, buyPrice, targetPrice, stopLoss, tradeType, riskLevel, status, date, createdAt, updatedAt]
 
     RecommendationList:
       type: object
@@ -961,12 +971,14 @@ components:
 
     CreateRecommendationRequest:
       type: object
-      required: [stockName, nseSymbol, buyPrice, targetPrice, stopLoss, tradeType, riskLevel]
+      required: [stockName, nseSymbol, signalType, buyPrice, targetPrice, stopLoss, tradeType, riskLevel]
       properties:
         stockName:
           type: string
         nseSymbol:
           type: string
+        signalType:
+          $ref: "#/components/schemas/SignalType"
         buyPrice:
           type: number
         targetPrice:
@@ -990,6 +1002,8 @@ components:
           type: string
         nseSymbol:
           type: string
+        signalType:
+          $ref: "#/components/schemas/SignalType"
         buyPrice:
           type: number
         targetPrice:
@@ -1105,7 +1119,15 @@ components:
           type: integer
         newUsersLastMonth:
           type: integer
-      required: [totalUsers, activeTrialUsers, premiumUsers, expiredUsers, totalRevenue, monthlyRevenue, totalRecommendations, averageWinRate, newUsersThisMonth, newUsersLastMonth]
+        buySignalCount:
+          type: integer
+        sellSignalCount:
+          type: integer
+        buyWinRate:
+          type: number
+        sellWinRate:
+          type: number
+      required: [totalUsers, activeTrialUsers, premiumUsers, expiredUsers, totalRevenue, monthlyRevenue, totalRecommendations, averageWinRate, newUsersThisMonth, newUsersLastMonth, buySignalCount, sellSignalCount, buyWinRate, sellWinRate]
 
     AdminUserList:
       type: object

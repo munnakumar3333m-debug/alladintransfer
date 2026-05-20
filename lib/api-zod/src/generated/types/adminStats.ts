@@ -17,4 +17,8 @@ export interface AdminStats {
   averageWinRate: number;
   newUsersThisMonth: number;
   newUsersLastMonth: number;
+  buySignalCount: number;
+  sellSignalCount: number;
+  buyWinRate: number;
+  sellWinRate: number;
 }

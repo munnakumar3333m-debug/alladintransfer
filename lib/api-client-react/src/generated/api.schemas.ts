@@ -58,6 +58,14 @@ export const RiskLevel = {
   high: 'high',
 } as const;
 
+export type SignalType = typeof SignalType[keyof typeof SignalType];
+
+
+export const SignalType = {
+  BUY: 'BUY',
+  SELL: 'SELL',
+} as const;
+
 export type RecommendationStatus = typeof RecommendationStatus[keyof typeof RecommendationStatus];
 
 
@@ -119,6 +127,7 @@ export interface Recommendation {
   id: number;
   stockName: string;
   nseSymbol: string;
+  signalType: SignalType;
   buyPrice: number;
   targetPrice: number;
   stopLoss: number;
@@ -145,6 +154,7 @@ export interface RecommendationList {
 export interface CreateRecommendationRequest {
   stockName: string;
   nseSymbol: string;
+  signalType: SignalType;
   buyPrice: number;
   targetPrice: number;
   stopLoss: number;
@@ -157,6 +167,7 @@ export interface CreateRecommendationRequest {
 export interface UpdateRecommendationRequest {
   stockName?: string;
   nseSymbol?: string;
+  signalType?: SignalType;
   buyPrice?: number;
   targetPrice?: number;
   stopLoss?: number;
@@ -213,6 +224,10 @@ export interface AdminStats {
   averageWinRate: number;
   newUsersThisMonth: number;
   newUsersLastMonth: number;
+  buySignalCount: number;
+  sellSignalCount: number;
+  buyWinRate: number;
+  sellWinRate: number;
 }
 
 export interface AdminUserList {
@@ -380,6 +395,7 @@ date?: string;
 month?: string;
 tradeType?: TradeType;
 status?: RecommendationStatus;
+signalType?: SignalType;
 page?: number;
 limit?: number;
 };

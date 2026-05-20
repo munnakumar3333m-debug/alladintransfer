@@ -20,6 +20,7 @@ function formatRec(r: typeof recommendationsTable.$inferSelect) {
     id: r.id,
     stockName: r.stockName,
     nseSymbol: r.nseSymbol,
+    signalType: (r.signalType ?? "BUY") as "BUY" | "SELL",
     buyPrice: parseFloat(r.buyPrice),
     targetPrice: parseFloat(r.targetPrice),
     stopLoss: parseFloat(r.stopLoss),
@@ -62,6 +63,7 @@ router.get("/recommendations", requireAuth, async (req, res): Promise<void> => {
   if (req.query.date) conditions.push(eq(recommendationsTable.date, String(req.query.date)));
   if (req.query.tradeType) conditions.push(eq(recommendationsTable.tradeType, String(req.query.tradeType)));
   if (req.query.status) conditions.push(eq(recommendationsTable.status, String(req.query.status)));
+  if (req.query.signalType) conditions.push(eq(recommendationsTable.signalType, String(req.query.signalType)));
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -109,6 +111,7 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
   const [rec] = await db.insert(recommendationsTable).values({
     stockName: parsed.data.stockName,
     nseSymbol: parsed.data.nseSymbol,
+    signalType: parsed.data.signalType ?? "BUY",
     buyPrice: String(parsed.data.buyPrice),
     targetPrice: String(parsed.data.targetPrice),
     stopLoss: String(parsed.data.stopLoss),
@@ -135,6 +138,7 @@ router.put("/recommendations/:id", requireAdmin, async (req, res): Promise<void>
   const updateData: Record<string, unknown> = {};
   if (parsed.data.stockName != null) updateData.stockName = parsed.data.stockName;
   if (parsed.data.nseSymbol != null) updateData.nseSymbol = parsed.data.nseSymbol;
+  if (parsed.data.signalType != null) updateData.signalType = parsed.data.signalType;
   if (parsed.data.buyPrice != null) updateData.buyPrice = String(parsed.data.buyPrice);
   if (parsed.data.targetPrice != null) updateData.targetPrice = String(parsed.data.targetPrice);
   if (parsed.data.stopLoss != null) updateData.stopLoss = String(parsed.data.stopLoss);
