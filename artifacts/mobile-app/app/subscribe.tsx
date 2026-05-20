@@ -1,6 +1,5 @@
 import { Feather } from "@expo/vector-icons";
 import { useGetSubscriptionStatus } from "@workspace/api-client-react";
-import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
@@ -36,7 +35,11 @@ export default function SubscribeScreen() {
   }, [sub?.type]);
 
   const handleCopy = async () => {
-    await Clipboard.setStringAsync(UPI_ID);
+    try {
+      if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(UPI_ID);
+      }
+    } catch {}
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("Copied", "UPI ID copied to clipboard");
   };
