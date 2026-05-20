@@ -37,7 +37,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               <TrendingUp className="w-5 h-5 text-slate-950" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-tight">AlphaTrade Pro</p>
+              <p className="text-white font-bold text-sm leading-tight">Alladin </p>
               <p className="text-slate-500 text-xs">Admin</p>
             </div>
           </div>
@@ -76,7 +76,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           </button>
         </div>
       </aside>
-
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
