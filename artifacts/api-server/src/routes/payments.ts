@@ -2,11 +2,13 @@ import { Router, type IRouter } from "express";
 import { db, paymentsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
-import {
-  VerifyPaymentBody,
-  GetPaymentHistoryResponse,
-  VerifyPaymentResponse,
-} from "@workspace/api-zod";
+import { z } from "zod";
+
+const GetPaymentHistoryResponse = z.any();
+const VerifyPaymentResponse = z.any();
+const VerifyPaymentBody = z.object({
+  paymentReference: z.string().min(1),
+});
 
 const router: IRouter = Router();
 

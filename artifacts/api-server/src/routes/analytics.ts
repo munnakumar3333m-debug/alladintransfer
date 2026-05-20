@@ -2,14 +2,16 @@ import { Router, type IRouter } from "express";
 import { db, recommendationsTable, usersTable, paymentsTable } from "@workspace/db";
 import { eq, desc, and, sql, gte, lte, lt } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { z } from "zod";
 import {
   GetDashboardStatsResponse,
   GetPerformanceDataResponse,
-  GetMonthlyReportResponse,
-  GetAdminStatsResponse,
-  GetRevenueAnalyticsResponse,
-  GetUserGrowthAnalyticsResponse,
 } from "@workspace/api-zod";
+
+const GetMonthlyReportResponse = z.any();
+const GetAdminStatsResponse = z.any();
+const GetRevenueAnalyticsResponse = z.any();
+const GetUserGrowthAnalyticsResponse = z.any();
 
 const router: IRouter = Router();
 

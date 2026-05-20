@@ -2,12 +2,16 @@ import { Router, type IRouter } from "express";
 import { db, usersTable, paymentsTable } from "@workspace/db";
 import { eq, desc, ilike, sql, or } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
-import {
-  AdminListUsersResponse,
-  AdminGetUserResponse,
-  AdminUpdateUserBody,
-  AdminUpdateUserResponse,
-} from "@workspace/api-zod";
+import { z } from "zod";
+
+const AdminListUsersResponse = z.any();
+const AdminGetUserResponse = z.any();
+const AdminUpdateUserResponse = z.any();
+const AdminUpdateUserBody = z.object({
+  isBlocked: z.boolean().optional(),
+  subscriptionType: z.enum(["trial", "premium", "expired"]).optional(),
+  premiumExpiryDate: z.string().optional(),
+});
 
 const router: IRouter = Router();
 

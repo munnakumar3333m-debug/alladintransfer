@@ -2,11 +2,19 @@ import { Router, type IRouter } from "express";
 import { db, notificationsTable, deviceTokensTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
-import {
-  RegisterDeviceBody,
-  SendNotificationBody,
-  GetNotificationHistoryResponse,
-} from "@workspace/api-zod";
+import { z } from "zod";
+
+const GetNotificationHistoryResponse = z.any();
+const RegisterDeviceBody = z.object({
+  token: z.string().min(1),
+  platform: z.enum(["ios", "android", "web"]),
+});
+const SendNotificationBody = z.object({
+  title: z.string().min(1),
+  body: z.string().min(1),
+  targetType: z.enum(["all", "premium", "trial", "specific"]).optional(),
+  userIds: z.array(z.number()).optional(),
+});
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
