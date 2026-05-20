@@ -73,6 +73,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
               name="triangle"
               size={18}
               color={signalColor}
+              style={isBuy ? styles.buyTriangle : styles.sellTriangle}
             />
           </View>
           <Text style={[styles.signalLabel, { color: signalColor }]}>
@@ -324,5 +325,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_500Medium",
     marginRight: 2,
+  },
+  buyTriangle: {
+    transform: [{ rotate: "0deg" }],
+  },
+  sellTriangle: {
+    transform: [{ rotate: "180deg" }],
   },
 });
