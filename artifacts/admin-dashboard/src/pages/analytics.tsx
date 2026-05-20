@@ -24,6 +24,26 @@ const RADIAN = Math.PI / 180;
 export default function AnalyticsPage() {
   const { data: stats } = useGetDashboardStats();
   const { data: performance } = useGetPerformanceData();
+  const signalCompareData = [
+    {
+      name: "BUY",
+      winRate: stats?.buyWinRate ?? 0,
+    },
+    {
+      name: "SELL",
+      winRate: stats?.sellWinRate ?? 0,
+    },
+  ].filter((entry) => entry.winRate > 0);
+  const adminStats = {
+    buySignalCount: stats?.buyWinRate ? 1 : 0,
+    sellSignalCount: stats?.sellWinRate ? 1 : 0,
+  };
+  const revenue = {
+    monthly: performance?.map((month) => ({
+      month: month.month,
+      revenue: month.totalPnlPercent ?? 0,
+    })) ?? [],
+  };
 
   const pieData = stats
     ? [

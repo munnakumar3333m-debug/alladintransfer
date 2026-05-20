@@ -135,7 +135,7 @@ router.get("/analytics/performance", requireAuth, async (_req, res): Promise<voi
     });
   }
 
-  res.json(GetPerformanceDataResponse.parse(months));
+  res.json(GetPerformanceDataResponse.parse({ months }));
 });
 
 router.get("/analytics/monthly/:month", requireAuth, async (req, res): Promise<void> => {
