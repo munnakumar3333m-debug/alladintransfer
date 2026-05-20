@@ -126,7 +126,16 @@ export default function RecommendationDetailScreen() {
 
               <View style={styles.dotsRow}>
                 {screenshots.map((_, i) => (
-                  <View key={i} style={[styles.dot, { backgroundColor: i === index ? colors.primary : colors.border }]} />
+                  <View
+                    key={i}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor:
+                          i === index ? colors.primary : colors.border,
+                      },
+                    ]}
+                  />
                 ))}
               </View>
             </View>

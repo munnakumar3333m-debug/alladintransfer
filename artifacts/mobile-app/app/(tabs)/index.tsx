@@ -67,7 +67,10 @@ export default function HomeScreen() {
       <View style={styles.headerRow}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
-            Good {getGreeting()}, {user?.name?.split(" ")[0] ?? "Trader"}
+            {"Good "}
+            {getGreeting()}
+            {", "}
+            {user?.name?.split(" ")[0] ?? "Trader"}
           </Text>
           <Text style={[styles.date, { color: colors.foreground }]}>{today}</Text>
         </View>
@@ -137,7 +140,7 @@ export default function HomeScreen() {
               No picks today
             </Text>
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Check back later. New recommendations are posted every morning.
+              {"Check back later. New recommendations are posted every morning."}
             </Text>
           </View>
         )}
