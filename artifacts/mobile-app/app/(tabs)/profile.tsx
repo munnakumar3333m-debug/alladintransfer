@@ -58,19 +58,13 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const subColor =
-    sub?.type === "premium"
-      ? colors.positive
-      : sub?.type === "trial"
-        ? colors.warning
-        : colors.negative;
+  const isPremium = sub?.type === "premium";
+  const isTrial = sub?.type === "trial";
+  const isExpired = sub?.type === "expired" || !isPremium && !isTrial;
 
-  const subLabel =
-    sub?.type === "premium"
-      ? "Premium"
-      : sub?.type === "trial"
-        ? "Trial"
-        : "Expired";
+  const subColor = isPremium ? colors.positive : isTrial ? colors.warning : colors.negative;
+
+  const subLabel = isPremium ? "Premium" : isTrial ? "Trial" : "Expired";
 
   return (
     <ScrollView
@@ -115,7 +109,7 @@ export default function ProfileScreen() {
         </View>
         {sub?.expiryDate && (
           <Text style={[styles.subExpiry, { color: colors.mutedForeground }]}>
-            {sub.type === "expired" ? "Expired" : "Expires"}{" "}
+            {isExpired ? "Expired" : "Expires"}{" "}
             {new Date(sub.expiryDate).toLocaleDateString("en-IN", {
               day: "numeric",
               month: "long",
@@ -128,7 +122,7 @@ export default function ProfileScreen() {
             {sub.daysLeft} day{sub.daysLeft === 1 ? "" : "s"} remaining
           </Text>
         )}
-        {(sub?.type === "trial" || sub?.type === "expired") && (
+        {!isPremium && (
           <TouchableOpacity
             style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
             onPress={() => router.push("/subscribe")}
@@ -136,7 +130,7 @@ export default function ProfileScreen() {
           >
             <Feather name="zap" size={14} color={colors.primaryForeground} />
             <Text style={[styles.upgradeBtnText, { color: colors.primaryForeground }]}>
-              {sub.type === "expired" ? "Renew Subscription" : "Upgrade to Premium"}
+              {isExpired ? "Renew Subscription" : "Upgrade to Premium"}
             </Text>
           </TouchableOpacity>
         )}
