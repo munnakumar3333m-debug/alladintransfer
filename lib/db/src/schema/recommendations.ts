@@ -13,6 +13,8 @@ export const recommendationsTable = pgTable("recommendations", {
   tradeType: text("trade_type").notNull(),
   riskLevel: text("risk_level").notNull().default("medium"),
   notes: text("notes"),
+  screenshotUrl: text("screenshot_url"),
+  screenshots: text("screenshots").array(),
   status: text("status").notNull().default("active"),
   exitPrice: numeric("exit_price", { precision: 10, scale: 2 }),
   pnlPercent: numeric("pnl_percent", { precision: 10, scale: 4 }),

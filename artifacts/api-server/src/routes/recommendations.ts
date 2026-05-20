@@ -27,6 +27,8 @@ function formatRec(r: typeof recommendationsTable.$inferSelect) {
     tradeType: r.tradeType,
     riskLevel: r.riskLevel,
     notes: r.notes,
+    screenshotUrl: r.screenshotUrl,
+    screenshots: r.screenshots ?? [],
     status: r.status,
     exitPrice: r.exitPrice != null ? parseFloat(r.exitPrice) : null,
     pnlPercent: r.pnlPercent != null ? parseFloat(r.pnlPercent) : null,
@@ -118,6 +120,8 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
     tradeType: parsed.data.tradeType,
     riskLevel: parsed.data.riskLevel ?? "medium",
     notes: parsed.data.notes ?? null,
+    screenshotUrl: parsed.data.screenshotUrl ?? null,
+    screenshots: parsed.data.screenshots ?? null,
     date: insertDate,
     status: "active",
   }).returning();
@@ -145,6 +149,8 @@ router.put("/recommendations/:id", requireAdmin, async (req, res): Promise<void>
   if (parsed.data.tradeType != null) updateData.tradeType = parsed.data.tradeType;
   if (parsed.data.riskLevel != null) updateData.riskLevel = parsed.data.riskLevel;
   if (parsed.data.notes != null) updateData.notes = parsed.data.notes;
+  if (parsed.data.screenshotUrl != null) updateData.screenshotUrl = parsed.data.screenshotUrl;
+  if (parsed.data.screenshots != null) updateData.screenshots = parsed.data.screenshots;
   if (parsed.data.date != null) updateData.date = parsed.data.date;
 
   const [rec] = await db.update(recommendationsTable).set(updateData).where(eq(recommendationsTable.id, id)).returning();
