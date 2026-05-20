@@ -17,8 +17,23 @@ function findWorkspaceRoot(startDir) {
     }
     dir = path.dirname(dir);
   }
-  throw new Error("Could not find workspace root (no pnpm-workspace.yaml found)");
+  throw new Error("Could not find workspace root");
 }
+
+// Expo CLI detects the pnpm monorepo and uses the workspace root as Metro's
+// project root. So the bundle URL is the expo-router entry file path relative
+// to the workspace root, not /index.bundle.
+function getEntryBundlePath() {
+  try {
+    const wsRoot = findWorkspaceRoot(projectRoot);
+    const entryAbs = require.resolve("expo-router/entry", { paths: [projectRoot] });
+    const rel = path.relative(wsRoot, entryAbs).replace(/\\/g, "/");
+    return "/" + rel.replace(/\.js$/, ".bundle");
+  } catch {
+    return "/index.bundle";
+  }
+}
+
 
 const workspaceRoot = findWorkspaceRoot(projectRoot);
 const basePath = (process.env.BASE_PATH || "/").replace(/\/+$/, "");
@@ -260,7 +275,9 @@ async function downloadFile(url, outputPath) {
 }
 
 async function downloadBundle(platform, timestamp, metroPort) {
-  const url = new URL(`http://127.0.0.1:${metroPort}/index.bundle`);
+  const entryPath = getEntryBundlePath();
+  console.log(`Entry bundle path: ${entryPath}`);
+  const url = new URL(`http://127.0.0.1:${metroPort}${entryPath}`);
   url.searchParams.set("platform", platform);
   url.searchParams.set("dev", "false");
   url.searchParams.set("hot", "false");
