@@ -281,7 +281,7 @@ export default function ProfileScreen() {
       </View>
 
       <Text style={[styles.version, { color: colors.mutedForeground }]}>
-        Alladin v1.0
+        ALLADIN  v1.0{"\n"}Powered by Fluxloom capitals
       </Text>
     </ScrollView>
   );
