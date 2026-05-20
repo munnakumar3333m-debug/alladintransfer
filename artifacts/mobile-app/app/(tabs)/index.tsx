@@ -88,7 +88,7 @@ export default function HomeScreen() {
         />
       )}
 
-      {stats && (
+      {stats ? (
         <View style={styles.statsRow}>
           <StatsCard
             label="Total Picks"
@@ -107,7 +107,7 @@ export default function HomeScreen() {
             negative={!!stats.monthlyProfitPercent && stats.monthlyProfitPercent < 0}
           />
         </View>
-      )}
+      ) : null}
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
