@@ -14,7 +14,7 @@ const router: IRouter = Router();
 
 const SUBSCRIPTION_AMOUNT = 800;
 const UPI_ID = "8429054622@ptaxis";
-const MERCHANT_NAME = "AlphaTrade Pro";
+const MERCHANT_NAME = "Alladin";
 const PAYMENT_URI = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=800&cu=INR`;
 
 router.post("/payments/create-order", requireAuth, async (_req, res): Promise<void> => {

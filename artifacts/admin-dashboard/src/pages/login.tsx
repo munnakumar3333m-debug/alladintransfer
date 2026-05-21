@@ -38,7 +38,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4">
             <TrendingUp className="w-8 h-8 text-slate-950" />
           </div>
-          <h1 className="text-2xl font-bold text-white">AlphaTrade Pro</h1>
+          <h1 className="text-2xl font-bold text-white">Alladin</h1>
           <p className="text-slate-400 text-sm mt-1">Admin Dashboard</p>
         </div>
 

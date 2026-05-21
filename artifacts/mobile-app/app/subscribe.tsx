@@ -19,7 +19,7 @@ import { useColors } from "@/hooks/useColors";
 
 const UPI_ID = "8429054622@ptaxis";
 const UPI_AMOUNT = 800;
-const MERCHANT_NAME = "AlphaTrade Pro";
+const MERCHANT_NAME = "Alladin";
 const UPI_URL = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${UPI_AMOUNT}&cu=INR`;
 
 export default function SubscribeScreen() {
