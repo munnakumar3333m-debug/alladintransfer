@@ -22,7 +22,9 @@ export const HealthCheckResponse = zod.object({
 export const RegisterBody = zod.object({
   "name": zod.string(),
   "phone": zod.string(),
-  "password": zod.string()
+  "password": zod.string(),
+  "email": zod.string().nullish(),
+  "referralCode": zod.string().nullish()
 })
 
 
@@ -411,7 +413,12 @@ export const GetWinRateHistoryResponse = zod.object({
  * @summary Get current subscription status
  */
 export const GetSubscriptionStatusResponse = zod.object({
-  "subscriptionType": zod.enum(['trial', 'premium', 'expired'])
+  "subscriptionType": zod.enum(['trial', 'premium', 'expired']),
+  "daysRemaining": zod.number().nullish(),
+  "isActive": zod.boolean().optional(),
+  "trialStartDate": zod.string().nullish(),
+  "trialExpiryDate": zod.string().nullish(),
+  "premiumExpiryDate": zod.string().nullish()
 })
 
 

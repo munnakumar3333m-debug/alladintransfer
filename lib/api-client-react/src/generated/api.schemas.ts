@@ -21,6 +21,8 @@ export interface RegisterRequest {
   name: string;
   phone: string;
   password: string;
+  email?: string | null;
+  referralCode?: string | null;
 }
 
 export interface LoginRequest {
@@ -213,6 +215,11 @@ export const SubscriptionStatusSubscriptionType = {
 
 export interface SubscriptionStatus {
   subscriptionType: SubscriptionStatusSubscriptionType;
+  daysRemaining?: number | null;
+  isActive?: boolean;
+  trialStartDate?: string | null;
+  trialExpiryDate?: string | null;
+  premiumExpiryDate?: string | null;
 }
 
 export interface PostQuoteRequest {

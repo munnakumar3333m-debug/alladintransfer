@@ -10,4 +10,6 @@ export interface RegisterRequest {
   name: string;
   phone: string;
   password: string;
+  email?: string | null;
+  referralCode?: string | null;
 }

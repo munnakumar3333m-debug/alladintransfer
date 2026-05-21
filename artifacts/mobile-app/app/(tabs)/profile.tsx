@@ -130,7 +130,7 @@ export default function ProfileScreen() {
       {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
         <SubscriptionBanner
           type={sub.subscriptionType === "expired" ? "expired" : "trial"}
-          daysLeft={(sub.daysRemaining ?? 0) > 0 ? sub.daysRemaining : undefined}
+          daysLeft={(sub.daysRemaining ?? 0) > 0 ? (sub.daysRemaining ?? undefined) : undefined}
         />
       )}
 
@@ -141,12 +141,12 @@ export default function ProfileScreen() {
             <Text style={[styles.subBadgeText, { color: subColor }]}>{subLabel}</Text>
           </View>
         </View>
-        {sub?.expiryDate && (
+        {(sub?.premiumExpiryDate ?? sub?.trialExpiryDate) && (
           <Text style={[styles.subExpiry, { color: colors.mutedForeground }]}>
-            {isExpired ? "Expired" : "Expires"} {new Date(sub.expiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+            {isExpired ? "Expired" : "Expires"} {new Date((sub?.premiumExpiryDate ?? sub?.trialExpiryDate)!).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
           </Text>
         )}
-        {sub?.daysRemaining !== undefined && sub.daysRemaining > 0 && (
+        {sub?.daysRemaining != null && sub.daysRemaining > 0 && (
           <Text style={[styles.daysLeft, { color: subColor }]}>{sub.daysRemaining} day{sub.daysRemaining === 1 ? "" : "s"} remaining</Text>
         )}
         {!isPremium && (

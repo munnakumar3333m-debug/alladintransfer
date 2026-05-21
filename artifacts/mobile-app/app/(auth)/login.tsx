@@ -49,7 +49,7 @@ export default function LoginScreen() {
       setError("Phone and password are required");
       return;
     }
-    mutate({ data: { phone, password } });
+    mutate({ data: { identifier: phone, password } });
   };
 
   return (

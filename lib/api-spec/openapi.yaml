@@ -505,6 +505,12 @@ components:
           type: string
         password:
           type: string
+        email:
+          type: string
+          nullable: true
+        referralCode:
+          type: string
+          nullable: true
     LoginRequest:
       type: object
       required: [identifier, password]
@@ -810,6 +816,20 @@ components:
         subscriptionType:
           type: string
           enum: [trial, premium, expired]
+        daysRemaining:
+          type: integer
+          nullable: true
+        isActive:
+          type: boolean
+        trialStartDate:
+          type: string
+          nullable: true
+        trialExpiryDate:
+          type: string
+          nullable: true
+        premiumExpiryDate:
+          type: string
+          nullable: true
     PostQuoteRequest:
       type: object
       required: [quote]

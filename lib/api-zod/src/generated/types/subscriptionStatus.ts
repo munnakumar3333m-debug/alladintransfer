@@ -9,4 +9,9 @@ import type { SubscriptionStatusSubscriptionType } from './subscriptionStatusSub
 
 export interface SubscriptionStatus {
   subscriptionType: SubscriptionStatusSubscriptionType;
+  daysRemaining?: number | null;
+  isActive?: boolean;
+  trialStartDate?: string | null;
+  trialExpiryDate?: string | null;
+  premiumExpiryDate?: string | null;
 }

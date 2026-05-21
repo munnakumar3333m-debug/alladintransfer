@@ -3,13 +3,16 @@ import {
   useGetDashboardStats,
   useGetPerformanceData,
 } from "@workspace/api-client-react";
-import React, { useMemo } from "react";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,8 +36,8 @@ function fmtPct(v: number): string {
 
 const BAR_WIDTH = 36;
 const BAR_GAP = 10;
-const CHART_HEIGHT = 180; // total area for bars (above + below baseline)
-const HALF = CHART_HEIGHT / 2;   // 90px each side
+const CHART_HEIGHT = 180;
+const HALF = CHART_HEIGHT / 2;
 
 interface MonthBar {
   month: string;
@@ -52,9 +55,11 @@ interface MonthBar {
 interface BarChartProps {
   bars: MonthBar[];
   maxAbs: number;
+  selectedMonth: string | null;
+  onSelectMonth: (month: string) => void;
 }
 
-function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
+function MonthlyBarChart({ bars, maxAbs, selectedMonth, onSelectMonth }: BarChartProps) {
   const colors = useColors();
   const safeMax = maxAbs < 0.01 ? 1 : maxAbs;
 
@@ -71,14 +76,29 @@ function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
         <Text style={[styles.yLabel, { color: colors.negative }]}>-{safeMax.toFixed(0)}%</Text>
       </View>
 
-      {bars.map((bar, i) => {
+      {bars.map((bar) => {
         const isPositive = bar.pnl >= 0;
-        const barColor = isPositive ? colors.positive : colors.negative;
-        const barH = Math.max(2, (Math.abs(bar.pnl) / safeMax) * HALF);
         const isEmpty = Math.abs(bar.pnl) < 0.01;
+        const isSelected = selectedMonth === bar.month;
+        const barColor = isEmpty
+          ? colors.border
+          : isSelected
+            ? colors.primary
+            : isPositive
+              ? colors.positive
+              : colors.negative;
+        const barH = Math.max(2, (Math.abs(bar.pnl) / safeMax) * HALF);
 
         return (
-          <View key={bar.month} style={[styles.barColumn, { width: BAR_WIDTH + BAR_GAP }]}>
+          <TouchableOpacity
+            key={bar.month}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onSelectMonth(bar.month);
+            }}
+            style={[styles.barColumn, { width: BAR_WIDTH + BAR_GAP }]}
+          >
             {/* Year divider */}
             {bar.isNewYear && (
               <View style={[styles.yearDivider, { borderColor: colors.border }]}>
@@ -88,13 +108,18 @@ function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
               </View>
             )}
 
+            {/* Selected ring */}
+            {isSelected && (
+              <View style={[styles.selectedRing, { borderColor: colors.primary + "60", top: 0, bottom: 24, left: (BAR_GAP / 2) - 2 }]} />
+            )}
+
             {/* Full bar area */}
             <View style={{ height: CHART_HEIGHT, justifyContent: "center" }}>
-              {/* Positive half (above baseline) */}
+              {/* Positive half */}
               <View style={{ height: HALF, justifyContent: "flex-end", alignItems: "center" }}>
                 {isPositive && !isEmpty ? (
                   <>
-                    <Text style={[styles.barValueLabel, { color: colors.positive }]}>
+                    <Text style={[styles.barValueLabel, { color: isSelected ? colors.primary : colors.positive }]}>
                       {fmtPct(bar.pnl)}
                     </Text>
                     <View style={[styles.bar, { height: barH, width: BAR_WIDTH, backgroundColor: barColor, borderTopLeftRadius: 5, borderTopRightRadius: 5 }]} />
@@ -105,12 +130,12 @@ function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
               {/* Zero line */}
               <View style={[styles.zeroLine, { backgroundColor: colors.border }]} />
 
-              {/* Negative half (below baseline) */}
+              {/* Negative half */}
               <View style={{ height: HALF, justifyContent: "flex-start", alignItems: "center" }}>
                 {!isPositive && !isEmpty ? (
                   <>
                     <View style={[styles.bar, { height: barH, width: BAR_WIDTH, backgroundColor: barColor, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 }]} />
-                    <Text style={[styles.barValueLabel, { color: colors.negative }]}>
+                    <Text style={[styles.barValueLabel, { color: isSelected ? colors.primary : colors.negative }]}>
                       {fmtPct(bar.pnl)}
                     </Text>
                   </>
@@ -122,11 +147,116 @@ function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
             </View>
 
             {/* Month label */}
-            <Text style={[styles.monthLabel, { color: colors.mutedForeground }]}>{bar.label}</Text>
-          </View>
+            <Text style={[styles.monthLabel, { color: isSelected ? colors.primary : colors.mutedForeground, fontFamily: isSelected ? "Inter_700Bold" : "Inter_500Medium" }]}>
+              {bar.label}
+            </Text>
+          </TouchableOpacity>
         );
       })}
     </ScrollView>
+  );
+}
+
+// ─── Month Detail Panel ───────────────────────────────────────────────────────
+
+function MonthDetailPanel({ bar, onClose }: { bar: MonthBar; onClose: () => void }) {
+  const colors = useColors();
+  const pnlPositive = bar.pnl >= 0;
+  const pnlColor = pnlPositive ? colors.positive : colors.negative;
+
+  const rows = [
+    { label: "Total Trades", val: String(bar.wins + bar.losses), color: colors.foreground, icon: "bar-chart-2" as const },
+    { label: "Winning Trades", val: String(bar.wins), color: colors.positive, icon: "trending-up" as const },
+    { label: "Losing Trades", val: String(bar.losses), color: colors.negative, icon: "trending-down" as const },
+    { label: "Win Rate", val: `${bar.winRate.toFixed(1)}%`, color: bar.winRate >= 50 ? colors.positive : colors.negative, icon: "target" as const },
+    { label: "Net P&L", val: fmtPct(bar.pnl), color: pnlColor, icon: "percent" as const },
+    { label: "Best Trade", val: fmtPct(bar.best), color: colors.positive, icon: "award" as const },
+    { label: "Worst Trade", val: fmtPct(bar.worst), color: colors.negative, icon: "alert-circle" as const },
+  ];
+
+  return (
+    <View style={[styles.detailPanel, { backgroundColor: colors.card, borderColor: colors.primary + "40" }]}>
+      {/* Header */}
+      <View style={styles.detailHeader}>
+        <View style={styles.detailTitleRow}>
+          <View style={[styles.detailDot, { backgroundColor: pnlColor }]} />
+          <Text style={[styles.detailTitle, { color: colors.foreground }]}>
+            {bar.label} {bar.year}
+          </Text>
+          <View style={[styles.detailPnlPill, { backgroundColor: pnlColor + "20", borderColor: pnlColor + "50" }]}>
+            <Text style={[styles.detailPnlText, { color: pnlColor }]}>{fmtPct(bar.pnl)}</Text>
+          </View>
+        </View>
+        <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="x" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Stats grid */}
+      <View style={styles.detailGrid}>
+        {rows.map((r) => (
+          <View key={r.label} style={[styles.detailCell, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={[styles.detailCellIcon, { backgroundColor: r.color + "18" }]}>
+              <Feather name={r.icon} size={12} color={r.color} />
+            </View>
+            <Text style={[styles.detailCellVal, { color: r.color }]}>{r.val}</Text>
+            <Text style={[styles.detailCellLabel, { color: colors.mutedForeground }]}>{r.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── Win Rate Breakdown Panel ─────────────────────────────────────────────────
+
+function WinRateBreakdown({ wins, losses, winRate, onClose }: { wins: number; losses: number; winRate: number; onClose: () => void }) {
+  const colors = useColors();
+  const total = wins + losses;
+  const winPct = total > 0 ? (wins / total) * 100 : 0;
+  const lossPct = 100 - winPct;
+
+  return (
+    <View style={[styles.detailPanel, { backgroundColor: colors.card, borderColor: colors.positive + "40" }]}>
+      <View style={styles.detailHeader}>
+        <Text style={[styles.detailTitle, { color: colors.foreground }]}>Win Rate Breakdown</Text>
+        <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="x" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Progress bar */}
+      <View style={[styles.progressTrack, { backgroundColor: colors.negative + "30" }]}>
+        <View style={[styles.progressFill, { width: `${winPct}%` as any, backgroundColor: colors.positive }]} />
+      </View>
+      <View style={styles.progressLabels}>
+        <View style={styles.progressLabelItem}>
+          <View style={[styles.legendDot, { backgroundColor: colors.positive }]} />
+          <Text style={[styles.progressLabelText, { color: colors.mutedForeground }]}>{wins} wins ({winPct.toFixed(1)}%)</Text>
+        </View>
+        <View style={styles.progressLabelItem}>
+          <View style={[styles.legendDot, { backgroundColor: colors.negative }]} />
+          <Text style={[styles.progressLabelText, { color: colors.mutedForeground }]}>{losses} losses ({lossPct.toFixed(1)}%)</Text>
+        </View>
+      </View>
+
+      <View style={styles.detailGrid}>
+        {[
+          { label: "Total Trades", val: String(total), color: colors.primary, icon: "bar-chart-2" as const },
+          { label: "Winning Trades", val: String(wins), color: colors.positive, icon: "trending-up" as const },
+          { label: "Losing Trades", val: String(losses), color: colors.negative, icon: "trending-down" as const },
+          { label: "Win Rate", val: `${winRate.toFixed(1)}%`, color: winRate >= 50 ? colors.positive : colors.negative, icon: "target" as const },
+        ].map((r) => (
+          <View key={r.label} style={[styles.detailCell, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={[styles.detailCellIcon, { backgroundColor: r.color + "18" }]}>
+              <Feather name={r.icon} size={12} color={r.color} />
+            </View>
+            <Text style={[styles.detailCellVal, { color: r.color }]}>{r.val}</Text>
+            <Text style={[styles.detailCellLabel, { color: colors.mutedForeground }]}>{r.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -135,9 +265,14 @@ function MonthlyBarChart({ bars, maxAbs }: BarChartProps) {
 export default function AnalyticsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useGetDashboardStats();
   const { data: performance, isLoading: perfLoading, isError: perfError } = useGetPerformanceData();
+
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [showWinRate, setShowWinRate] = useState(false);
 
   const isLoading = statsLoading || perfLoading;
   const hasError = statsError || perfError;
@@ -151,25 +286,12 @@ export default function AnalyticsScreen() {
       const { label, year } = parseMonth(m.month);
       const isNewYear = year !== prevYear;
       prevYear = year;
-      return {
-        month: m.month,
-        label,
-        year,
-        pnl: m.totalPnlPercent,
-        wins: m.wins,
-        losses: m.losses,
-        winRate: m.winRate,
-        best: m.bestTradePercent,
-        worst: m.worstTradePercent,
-        isNewYear,
-      };
+      return { month: m.month, label, year, pnl: m.totalPnlPercent, wins: m.wins, losses: m.losses, winRate: m.winRate, best: m.bestTradePercent, worst: m.worstTradePercent, isNewYear };
     });
 
     const maxAbs = Math.max(...bars.map((b) => Math.abs(b.pnl)), 1);
     const sorted = [...bars].sort((a, b) => b.pnl - a.pnl);
     const avgPnl = bars.reduce((s, b) => s + b.pnl, 0) / bars.length;
-    const positiveMonths = bars.filter((b) => b.pnl > 0).length;
-    const negativeMonths = bars.filter((b) => b.pnl < 0).length;
 
     return {
       bars,
@@ -177,13 +299,79 @@ export default function AnalyticsScreen() {
       bestMonth: sorted[0] ?? null,
       worstMonth: sorted[sorted.length - 1] ?? null,
       avgPnl,
-      positiveMonths,
-      negativeMonths,
+      positiveMonths: bars.filter((b) => b.pnl > 0).length,
+      negativeMonths: bars.filter((b) => b.pnl < 0).length,
     };
   }, [performance]);
 
+  const selectedBar = bars.find((b) => b.month === selectedMonth) ?? null;
+
+  const handleSelectMonth = (month: string) => {
+    setShowWinRate(false);
+    setSelectedMonth((prev) => prev === month ? null : month);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  };
+
+  const statItems = stats ? [
+    {
+      icon: "bar-chart-2" as const,
+      val: String(stats.totalTrades ?? 0),
+      label: "Total Trades",
+      sub: "All picks ever",
+      color: colors.primary,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/(tabs)/history"); },
+      arrow: true,
+    },
+    {
+      icon: "trending-up" as const,
+      val: `${stats.winRate?.toFixed(1) ?? 0}%`,
+      label: "Win Rate",
+      sub: "Tap for breakdown",
+      color: colors.positive,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSelectedMonth(null); setShowWinRate((v) => !v); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); },
+      arrow: true,
+    },
+    {
+      icon: "percent" as const,
+      val: `${(stats.monthlyProfitPercent ?? 0) >= 0 ? "+" : ""}${stats.monthlyProfitPercent?.toFixed(1) ?? "0"}%`,
+      label: "Avg P&L",
+      sub: "Monthly average",
+      color: (stats.monthlyProfitPercent ?? 0) >= 0 ? colors.positive : colors.negative,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); scrollRef.current?.scrollToEnd({ animated: true }); },
+      arrow: false,
+    },
+    {
+      icon: "activity" as const,
+      val: String(stats.todayRecommendationsCount ?? 0),
+      label: "Today's Picks",
+      sub: "View active picks",
+      color: colors.primary,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/"); },
+      arrow: true,
+    },
+    {
+      icon: "clock" as const,
+      val: String(stats.trialDaysRemaining ?? 0),
+      label: "Trial Days Left",
+      sub: "Tap to upgrade",
+      color: colors.warning,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/subscribe"); },
+      arrow: true,
+    },
+    {
+      icon: "award" as const,
+      val: String(stats.premiumDaysRemaining ?? 0),
+      label: "Premium Days",
+      sub: "Tap to manage",
+      color: colors.positive,
+      onPress: () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/subscribe"); },
+      arrow: true,
+    },
+  ] : [];
+
   return (
     <ScrollView
+      ref={scrollRef}
       style={[styles.flex, { backgroundColor: colors.background }]}
       contentContainerStyle={[
         styles.content,
@@ -206,29 +394,38 @@ export default function AnalyticsScreen() {
         <>
           {/* ── Stat grid ───────────────────────────────────────── */}
           {stats ? (
-            <View style={styles.grid}>
-              {[
-                { icon: "bar-chart-2" as const, val: String(stats.totalTrades ?? 0), label: "Total Trades", color: colors.primary },
-                { icon: "trending-up" as const, val: `${stats.winRate?.toFixed(1) ?? 0}%`, label: "Win Rate", color: colors.positive },
-                {
-                  icon: "percent" as const,
-                  val: `${(stats.monthlyProfitPercent ?? 0) >= 0 ? "+" : ""}${stats.monthlyProfitPercent?.toFixed(1) ?? "0"}%`,
-                  label: "Avg P&L",
-                  color: (stats.monthlyProfitPercent ?? 0) >= 0 ? colors.positive : colors.negative,
-                },
-                { icon: "activity" as const, val: String(stats.todayRecommendationsCount ?? 0), label: "Active", color: colors.primary },
-                { icon: "clock" as const, val: String(stats.trialDaysRemaining ?? 0), label: "Trial Days", color: colors.warning },
-                { icon: "award" as const, val: String(stats.premiumDaysRemaining ?? 0), label: "Premium Days", color: colors.positive },
-              ].map((s) => (
-                <View key={s.label} style={[styles.statBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <View style={[styles.statIcon, { backgroundColor: s.color + "22" }]}>
-                    <Feather name={s.icon} size={16} color={s.color} />
-                  </View>
-                  <Text style={[styles.statValue, { color: s.color }]}>{s.val}</Text>
-                  <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{s.label}</Text>
-                </View>
-              ))}
-            </View>
+            <>
+              <View style={styles.grid}>
+                {statItems.map((s) => (
+                  <TouchableOpacity
+                    key={s.label}
+                    activeOpacity={0.72}
+                    onPress={s.onPress}
+                    style={[styles.statBlock, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  >
+                    <View style={styles.statBlockTop}>
+                      <View style={[styles.statIcon, { backgroundColor: s.color + "22" }]}>
+                        <Feather name={s.icon} size={15} color={s.color} />
+                      </View>
+                      {s.arrow && <Feather name="chevron-right" size={13} color={colors.mutedForeground} style={{ opacity: 0.6 }} />}
+                    </View>
+                    <Text style={[styles.statValue, { color: s.color }]}>{s.val}</Text>
+                    <Text style={[styles.statLabel, { color: colors.foreground }]}>{s.label}</Text>
+                    <Text style={[styles.statSub, { color: colors.mutedForeground }]}>{s.sub}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Win Rate breakdown panel */}
+              {showWinRate && stats && (
+                <WinRateBreakdown
+                  wins={Math.round(((stats.winRate ?? 0) / 100) * (stats.totalTrades ?? 0))}
+                  losses={(stats.totalTrades ?? 0) - Math.round(((stats.winRate ?? 0) / 100) * (stats.totalTrades ?? 0))}
+                  winRate={stats.winRate ?? 0}
+                  onClose={() => setShowWinRate(false)}
+                />
+              )}
+            </>
           ) : null}
 
           {/* ── Monthly performance chart ────────────────────────── */}
@@ -237,7 +434,7 @@ export default function AnalyticsScreen() {
               <View>
                 <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Monthly Performance</Text>
                 <Text style={[styles.chartSubtitle, { color: colors.mutedForeground }]}>
-                  Net P&amp;L % per month · last {bars.length} months
+                  Tap any bar · Net P&L % per month · last {bars.length} months
                 </Text>
               </View>
               {avgPnl !== 0 && (
@@ -267,43 +464,63 @@ export default function AnalyticsScreen() {
                     <Text style={[styles.legendText, { color: colors.mutedForeground }]}>Loss</Text>
                   </View>
                   <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: colors.border }]} />
-                    <Text style={[styles.legendText, { color: colors.mutedForeground }]}>No trades</Text>
+                    <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
+                    <Text style={[styles.legendText, { color: colors.mutedForeground }]}>Selected</Text>
                   </View>
                 </View>
 
-                <MonthlyBarChart bars={bars} maxAbs={maxAbs} />
+                <MonthlyBarChart
+                  bars={bars}
+                  maxAbs={maxAbs}
+                  selectedMonth={selectedMonth}
+                  onSelectMonth={handleSelectMonth}
+                />
 
-                {/* Summary row */}
+                {/* Summary row — tappable to select month */}
                 <View style={[styles.summaryRow, { borderTopColor: colors.border }]}>
-                  <View style={styles.summaryItem}>
+                  <TouchableOpacity style={styles.summaryItem} activeOpacity={0.7} onPress={() => {}}>
                     <Text style={[styles.summaryVal, { color: colors.positive }]}>{positiveMonths}</Text>
                     <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Gain months</Text>
-                  </View>
+                  </TouchableOpacity>
                   <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-                  <View style={styles.summaryItem}>
+                  <TouchableOpacity style={styles.summaryItem} activeOpacity={0.7} onPress={() => {}}>
                     <Text style={[styles.summaryVal, { color: colors.negative }]}>{negativeMonths}</Text>
                     <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Loss months</Text>
-                  </View>
+                  </TouchableOpacity>
                   <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-                  <View style={styles.summaryItem}>
+                  <TouchableOpacity
+                    style={styles.summaryItem}
+                    activeOpacity={0.7}
+                    onPress={() => bestMonth && handleSelectMonth(bestMonth.month)}
+                  >
                     <Text style={[styles.summaryVal, { color: colors.positive }]}>
                       {bestMonth ? `${bestMonth.label} '${bestMonth.year.slice(2)}` : "—"}
                     </Text>
                     <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
                       Best {bestMonth ? fmtPct(bestMonth.pnl) : ""}
                     </Text>
-                  </View>
+                    {bestMonth && <Feather name="chevron-up" size={10} color={colors.positive} style={{ marginTop: 1 }} />}
+                  </TouchableOpacity>
                   <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-                  <View style={styles.summaryItem}>
+                  <TouchableOpacity
+                    style={styles.summaryItem}
+                    activeOpacity={0.7}
+                    onPress={() => worstMonth && handleSelectMonth(worstMonth.month)}
+                  >
                     <Text style={[styles.summaryVal, { color: colors.negative }]}>
                       {worstMonth ? `${worstMonth.label} '${worstMonth.year.slice(2)}` : "—"}
                     </Text>
                     <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
                       Worst {worstMonth ? fmtPct(worstMonth.pnl) : ""}
                     </Text>
-                  </View>
+                    {worstMonth && <Feather name="chevron-up" size={10} color={colors.negative} style={{ marginTop: 1 }} />}
+                  </TouchableOpacity>
                 </View>
+
+                {/* Month detail panel */}
+                {selectedBar && (
+                  <MonthDetailPanel bar={selectedBar} onClose={() => setSelectedMonth(null)} />
+                )}
               </>
             )}
           </View>
@@ -317,12 +534,11 @@ export default function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  content: { paddingHorizontal: 16 },
+  content: { paddingHorizontal: 16, gap: 14 },
   title: {
     fontSize: 24,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginBottom: 20,
   },
   loader: { marginTop: 60 },
 
@@ -330,24 +546,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: 20,
   },
   statBlock: {
     width: "30%",
     flexGrow: 1,
     borderRadius: 14,
-    padding: 14,
+    padding: 13,
     borderWidth: 1,
-    gap: 6,
-    alignItems: "flex-start",
+    gap: 4,
+  },
+  statBlockTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
   },
   statIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
@@ -355,10 +574,44 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   statLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  statSub: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+  },
+
+  // Win rate breakdown
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  progressLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 14,
+  },
+  progressLabelItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  progressLabelText: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
 
+  // Chart
   chartCard: {
     borderRadius: 18,
     borderWidth: 1,
@@ -379,7 +632,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   chartSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },
@@ -436,9 +689,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  bar: {
-    minHeight: 2,
-  },
+  bar: { minHeight: 2 },
   zeroLine: {
     height: 1.5,
     width: BAR_WIDTH + BAR_GAP,
@@ -451,7 +702,6 @@ const styles = StyleSheet.create({
   },
   monthLabel: {
     fontSize: 10,
-    fontFamily: "Inter_500Medium",
     marginTop: 4,
     textAlign: "center",
   },
@@ -477,7 +727,16 @@ const styles = StyleSheet.create({
     top: -16,
     left: 2,
   },
+  selectedRing: {
+    position: "absolute",
+    right: 0,
+    width: BAR_WIDTH + BAR_GAP,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    zIndex: 0,
+  },
 
+  // Summary row
   summaryRow: {
     flexDirection: "row",
     borderTopWidth: 1,
@@ -486,8 +745,8 @@ const styles = StyleSheet.create({
   summaryItem: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 14,
-    gap: 3,
+    paddingVertical: 13,
+    gap: 2,
   },
   summaryDivider: {
     width: 1,
@@ -502,6 +761,81 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+  },
+
+  // Detail panel
+  detailPanel: {
+    borderTopWidth: 1.5,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderColor: "transparent",
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  detailHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  detailTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  detailDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  detailTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  detailPnlPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  detailPnlText: {
+    fontSize: 11,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  detailGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  detailCell: {
+    width: "30%",
+    flexGrow: 1,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    gap: 4,
+  },
+  detailCellIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  detailCellVal: {
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  detailCellLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
   },
 
   emptyCard: {

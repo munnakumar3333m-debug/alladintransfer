@@ -46,11 +46,11 @@ export default function SubscribeScreen() {
   const [copied, setCopied] = useState(false);
 
   const { badge, expiryText } = useMemo(() => {
-    if (sub?.type === "premium") return {
+    if (sub?.subscriptionType === "premium") return {
       badge: "ACTIVE",
       expiryText: "Your premium is active. Renew now to stack another 30 days.",
     };
-    if (sub?.type === "trial") return {
+    if (sub?.subscriptionType === "trial") return {
       badge: "TRIAL",
       expiryText: "Upgrade before your trial ends to enjoy uninterrupted access.",
     };
@@ -58,7 +58,7 @@ export default function SubscribeScreen() {
       badge: "EXPIRED",
       expiryText: "Your subscription has expired. Renew to regain full access.",
     };
-  }, [sub?.type]);
+  }, [sub?.subscriptionType]);
 
   const badgeColor = badge === "ACTIVE" ? colors.positive : badge === "TRIAL" ? colors.primary : colors.negative;
 
