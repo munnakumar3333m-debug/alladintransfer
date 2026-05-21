@@ -30,6 +30,8 @@ tags:
     description: Admin operations
   - name: referrals
     description: Referral system
+  - name: quotes
+    description: Daily trading quotes
 
 paths:
   /healthz:
@@ -424,6 +426,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/SubscriptionStatus"
 
+  # ─── QUOTES ─────────────────────────────────────────────────────────────────
+  /quotes/today:
+    get:
+      operationId: getTodayQuote
+      tags: [quotes]
+      summary: Get today's daily quote
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Today's quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyQuote"
+        "404":
+          description: No quote posted today
+  /quotes:
+    post:
+      operationId: postDailyQuote
+      tags: [quotes]
+      summary: Post or update today's quote (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostQuoteRequest"
+      responses:
+        "200":
+          description: Quote updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyQuote"
+        "201":
+          description: Quote created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyQuote"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -734,6 +780,21 @@ components:
           type: number
         worstTradePercent:
           type: number
+    DailyQuote:
+      type: object
+      required: [id, quote, date]
+      properties:
+        id:
+          type: integer
+        quote:
+          type: string
+        author:
+          type: string
+          nullable: true
+        date:
+          type: string
+        createdAt:
+          type: string
     WinRateHistory:
       type: object
       required: [months]
@@ -749,6 +810,14 @@ components:
         subscriptionType:
           type: string
           enum: [trial, premium, expired]
+    PostQuoteRequest:
+      type: object
+      required: [quote]
+      properties:
+        quote:
+          type: string
+        author:
+          type: string
     RecommendationList:
       type: object
       required: [data, total, page, limit, totalPages]

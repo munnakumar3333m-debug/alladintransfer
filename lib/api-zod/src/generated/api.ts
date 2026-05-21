@@ -415,3 +415,32 @@ export const GetSubscriptionStatusResponse = zod.object({
 })
 
 
+/**
+ * @summary Get today's daily quote
+ */
+export const GetTodayQuoteResponse = zod.object({
+  "id": zod.number(),
+  "quote": zod.string(),
+  "author": zod.string().nullish(),
+  "date": zod.string(),
+  "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Post or update today's quote (admin only)
+ */
+export const PostDailyQuoteBody = zod.object({
+  "quote": zod.string(),
+  "author": zod.string().optional()
+})
+
+export const PostDailyQuoteResponse = zod.object({
+  "id": zod.number(),
+  "quote": zod.string(),
+  "author": zod.string().nullish(),
+  "date": zod.string(),
+  "createdAt": zod.string().optional()
+})
+
+

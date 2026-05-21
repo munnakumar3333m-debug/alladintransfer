@@ -8,6 +8,7 @@ import paymentsRouter from "./payments";
 import notificationsRouter from "./notifications";
 import subscriptionsRouter from "./subscriptions";
 import referralsRouter from "./referrals";
+import quotesRouter from "./quotes";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(paymentsRouter);
 router.use(notificationsRouter);
 router.use(subscriptionsRouter);
 router.use(referralsRouter);
+router.use(quotesRouter);
 
 export default router;

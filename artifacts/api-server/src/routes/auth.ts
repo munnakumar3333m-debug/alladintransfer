@@ -98,9 +98,9 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { phone, password } = parsed.data;
+  const { identifier, password } = parsed.data;
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.phone, phone));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.phone, identifier));
   if (!user) {
     res.status(401).json({ error: "Invalid credentials" });
     return;

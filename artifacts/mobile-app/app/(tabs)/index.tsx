@@ -4,6 +4,7 @@ import {
   useGetMe,
   useGetSubscriptionStatus,
   useGetTodayRecommendations,
+  useGetTodayQuote,
 } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -104,6 +105,7 @@ export default function HomeScreen() {
   const { data: todayRecs, isLoading: recsLoading, refetch: refetchRecs } = useGetTodayRecommendations();
   const { data: stats, refetch: refetchStats } = useGetDashboardStats();
   const { data: sub } = useGetSubscriptionStatus();
+  const { data: quote } = useGetTodayQuote();
 
   const isRefreshing = false;
   const onRefresh = async () => {
@@ -156,6 +158,19 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
+
+        {quote && (
+          <View style={[styles.quoteCard, { backgroundColor: colors.card, borderColor: colors.primary + "33" }]}>
+            <View style={styles.quoteTop}>
+              <Feather name="trending-up" size={13} color={colors.primary} />
+              <Text style={[styles.quoteTag, { color: colors.primary }]}>Quote of the Day</Text>
+            </View>
+            <Text style={[styles.quoteText, { color: colors.foreground }]}>"{quote.quote}"</Text>
+            {quote.author ? (
+              <Text style={[styles.quoteAuthor, { color: colors.mutedForeground }]}>— {quote.author}</Text>
+            ) : null}
+          </View>
+        )}
 
         {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
           <SubscriptionBanner
@@ -320,6 +335,36 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     paddingHorizontal: 32,
+  },
+  // ── Quote Card ───────────────────────────────────────────────────────────────
+  quoteCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    gap: 7,
+    marginBottom: 4,
+  },
+  quoteTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  quoteTag: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  quoteText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 21,
+    fontStyle: "italic",
+  },
+  quoteAuthor: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
   },
   // ── Widget ──────────────────────────────────────────────────────────────────
   widget: {

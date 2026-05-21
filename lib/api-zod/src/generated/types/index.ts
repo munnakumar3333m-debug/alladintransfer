@@ -8,6 +8,7 @@
 
 export * from './authResponse';
 export * from './createRecommendationRequest';
+export * from './dailyQuote';
 export * from './dashboardStats';
 export * from './dashboardStatsSubscriptionType';
 export * from './errorResponse';
@@ -18,6 +19,7 @@ export * from './loginRequest';
 export * from './messageResponse';
 export * from './performanceData';
 export * from './performanceDataMonth';
+export * from './postQuoteRequest';
 export * from './recommendation';
 export * from './recommendationList';
 export * from './recommendationStatus';

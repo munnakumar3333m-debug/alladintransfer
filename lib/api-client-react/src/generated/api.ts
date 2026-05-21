@@ -22,6 +22,7 @@ import type {
 import type {
   AuthResponse,
   CreateRecommendationRequest,
+  DailyQuote,
   DashboardStats,
   ErrorResponse,
   ForgotPasswordRequest,
@@ -30,6 +31,7 @@ import type {
   LoginRequest,
   MessageResponse,
   PerformanceData,
+  PostQuoteRequest,
   Recommendation,
   RecommendationList,
   RegisterRequest,
@@ -1321,4 +1323,152 @@ export function useGetSubscriptionStatus<TData = Awaited<ReturnType<typeof getSu
 
 
 
+
+export const getGetTodayQuoteUrl = () => {
+
+
+
+
+  return `/api/quotes/today`
+}
+
+/**
+ * @summary Get today's daily quote
+ */
+export const getTodayQuote = async ( options?: RequestInit): Promise<DailyQuote> => {
+
+  return customFetch<DailyQuote>(getGetTodayQuoteUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTodayQuoteQueryKey = () => {
+    return [
+    `/api/quotes/today`
+    ] as const;
+    }
+
+
+export const getGetTodayQuoteQueryOptions = <TData = Awaited<ReturnType<typeof getTodayQuote>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTodayQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTodayQuoteQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTodayQuote>>> = ({ signal }) => getTodayQuote({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTodayQuote>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTodayQuoteQueryResult = NonNullable<Awaited<ReturnType<typeof getTodayQuote>>>
+export type GetTodayQuoteQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get today's daily quote
+ */
+
+export function useGetTodayQuote<TData = Awaited<ReturnType<typeof getTodayQuote>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTodayQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTodayQuoteQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getPostDailyQuoteUrl = () => {
+
+
+
+
+  return `/api/quotes`
+}
+
+/**
+ * @summary Post or update today's quote (admin only)
+ */
+export const postDailyQuote = async (postQuoteRequest: PostQuoteRequest, options?: RequestInit): Promise<DailyQuote> => {
+
+  return customFetch<DailyQuote>(getPostDailyQuoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      postQuoteRequest,)
+  }
+);}
+
+
+
+
+export const getPostDailyQuoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postDailyQuote>>, TError,{data: BodyType<PostQuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postDailyQuote>>, TError,{data: BodyType<PostQuoteRequest>}, TContext> => {
+
+const mutationKey = ['postDailyQuote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postDailyQuote>>, {data: BodyType<PostQuoteRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postDailyQuote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostDailyQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof postDailyQuote>>>
+    export type PostDailyQuoteMutationBody = BodyType<PostQuoteRequest>
+    export type PostDailyQuoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Post or update today's quote (admin only)
+ */
+export const usePostDailyQuote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postDailyQuote>>, TError,{data: BodyType<PostQuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof postDailyQuote>>,
+        TError,
+        {data: BodyType<PostQuoteRequest>},
+        TContext
+      > => {
+      return useMutation(getPostDailyQuoteMutationOptions(options));
+    }
 

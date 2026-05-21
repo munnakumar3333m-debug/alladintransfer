@@ -188,6 +188,14 @@ export interface PerformanceData {
   months: PerformanceDataMonth[];
 }
 
+export interface DailyQuote {
+  id: number;
+  quote: string;
+  author?: string | null;
+  date: string;
+  createdAt?: string;
+}
+
 export type WinRateHistoryMonthsItem = { [key: string]: unknown };
 
 export interface WinRateHistory {
@@ -205,6 +213,11 @@ export const SubscriptionStatusSubscriptionType = {
 
 export interface SubscriptionStatus {
   subscriptionType: SubscriptionStatusSubscriptionType;
+}
+
+export interface PostQuoteRequest {
+  quote: string;
+  author?: string;
 }
 
 export interface RecommendationList {
