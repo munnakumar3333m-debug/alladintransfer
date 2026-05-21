@@ -431,7 +431,7 @@ export default function AnalyticsScreen() {
           {/* ── Monthly performance chart ────────────────────────── */}
           <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.chartHeader}>
-              <View>
+              <View style={styles.chartHeaderLeft}>
                 <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Monthly Performance</Text>
                 <Text style={[styles.chartSubtitle, { color: colors.mutedForeground }]}>
                   Tap any bar · Net P&L % per month · last {bars.length} months
@@ -439,7 +439,7 @@ export default function AnalyticsScreen() {
               </View>
               {avgPnl !== 0 && (
                 <View style={[styles.avgPill, { backgroundColor: (avgPnl >= 0 ? colors.positive : colors.negative) + "20", borderColor: (avgPnl >= 0 ? colors.positive : colors.negative) + "55" }]}>
-                  <Text style={[styles.avgPillText, { color: avgPnl >= 0 ? colors.positive : colors.negative }]}>
+                  <Text style={[styles.avgPillText, { color: avgPnl >= 0 ? colors.positive : colors.negative }]} numberOfLines={1}>
                     Avg {fmtPct(avgPnl)}
                   </Text>
                 </View>
@@ -625,6 +625,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 18,
     marginBottom: 10,
+    gap: 10,
+  },
+  chartHeaderLeft: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 16,
