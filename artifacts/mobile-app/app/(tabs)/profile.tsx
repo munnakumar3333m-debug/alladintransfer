@@ -220,10 +220,7 @@ export default function ProfileScreen() {
           <View style={[styles.menuIconBox, { backgroundColor: "#10b98122" }]}>
             <Feather name="phone" size={16} color="#10b981" />
           </View>
-          <View style={styles.menuTextBlock}>
-            <Text style={[styles.menuText, { color: colors.foreground }]}>Call Support</Text>
-            <Text style={[styles.menuSub, { color: colors.mutedForeground }]}>+91 84290 54622</Text>
-          </View>
+          <Text style={[styles.menuText, { color: colors.foreground }]}>Call Support</Text>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -234,10 +231,7 @@ export default function ProfileScreen() {
           <View style={[styles.menuIconBox, { backgroundColor: "#25D36622" }]}>
             <Feather name="message-circle" size={16} color="#25D366" />
           </View>
-          <View style={styles.menuTextBlock}>
-            <Text style={[styles.menuText, { color: colors.foreground }]}>Chat on WhatsApp</Text>
-            <Text style={[styles.menuSub, { color: colors.mutedForeground }]}>+91 84290 54622</Text>
-          </View>
+          <Text style={[styles.menuText, { color: colors.foreground }]}>Chat on WhatsApp</Text>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
         </TouchableOpacity>
       </View>
