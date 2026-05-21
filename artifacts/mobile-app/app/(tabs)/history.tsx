@@ -16,25 +16,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RecommendationCard } from "@/components/RecommendationCard";
 import { useColors } from "@/hooks/useColors";
 
-type Filter = "all" | "intraday" | "swing" | "positional";
-type StatusFilter = "all" | "active" | "target_hit" | "stop_loss_hit";
-
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "intraday", label: "Intraday" },
-  { key: "swing", label: "Swing" },
-  { key: "positional", label: "Positional" },
-];
-
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [tradeFilter, setTradeFilter] = useState<Filter>("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, refetch } = useListRecommendations({
-    tradeType: tradeFilter === "all" ? undefined : tradeFilter,
     page,
     limit: 20,
   });
@@ -54,41 +42,6 @@ export default function HistoryScreen() {
         ]}
       >
         <Text style={[styles.title, { color: colors.foreground }]}>Trade History</Text>
-
-        <View style={styles.filterRow}>
-          {FILTERS.map((f) => (
-            <TouchableOpacity
-              key={f.key}
-              style={[
-                styles.filterChip,
-                {
-                  backgroundColor:
-                    tradeFilter === f.key ? colors.primary : colors.card,
-                  borderColor:
-                    tradeFilter === f.key ? colors.primary : colors.border,
-                },
-              ]}
-              onPress={() => {
-                setTradeFilter(f.key);
-                setPage(1);
-              }}
-            >
-              <Text
-                style={[
-                  styles.filterText,
-                  {
-                    color:
-                      tradeFilter === f.key
-                        ? colors.primaryForeground
-                        : colors.mutedForeground,
-                  },
-                ]}
-              >
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
 
       {isLoading ? (
@@ -178,20 +131,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
     marginBottom: 14,
-  },
-  filterRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  filterText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
   },
   loader: {
     flex: 1,
