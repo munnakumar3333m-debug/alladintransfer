@@ -21,9 +21,9 @@ function formatRec(r: typeof recommendationsTable.$inferSelect) {
     stockName: r.stockName,
     nseSymbol: r.nseSymbol,
     signalType: (r.signalType ?? "BUY") as "BUY" | "SELL",
-    buyPrice: parseFloat(r.buyPrice),
-    targetPrice: parseFloat(r.targetPrice),
-    stopLoss: parseFloat(r.stopLoss),
+    buyPrice: r.buyPrice,
+    targetPrice: r.targetPrice,
+    stopLoss: r.stopLoss,
     tradeType: r.tradeType,
     riskLevel: r.riskLevel,
     notes: r.notes,
@@ -114,9 +114,9 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
     stockName: parsed.data.stockName,
     nseSymbol: parsed.data.nseSymbol,
     signalType: parsed.data.signalType ?? "BUY",
-    buyPrice: String(parsed.data.buyPrice),
-    targetPrice: String(parsed.data.targetPrice),
-    stopLoss: String(parsed.data.stopLoss),
+    buyPrice: parsed.data.buyPrice,
+    targetPrice: parsed.data.targetPrice,
+    stopLoss: parsed.data.stopLoss,
     tradeType: parsed.data.tradeType,
     riskLevel: parsed.data.riskLevel ?? "medium",
     notes: parsed.data.notes ?? null,
@@ -143,9 +143,9 @@ router.put("/recommendations/:id", requireAdmin, async (req, res): Promise<void>
   if (parsed.data.stockName != null) updateData.stockName = parsed.data.stockName;
   if (parsed.data.nseSymbol != null) updateData.nseSymbol = parsed.data.nseSymbol;
   if (parsed.data.signalType != null) updateData.signalType = parsed.data.signalType;
-  if (parsed.data.buyPrice != null) updateData.buyPrice = String(parsed.data.buyPrice);
-  if (parsed.data.targetPrice != null) updateData.targetPrice = String(parsed.data.targetPrice);
-  if (parsed.data.stopLoss != null) updateData.stopLoss = String(parsed.data.stopLoss);
+  if (parsed.data.buyPrice != null) updateData.buyPrice = parsed.data.buyPrice;
+  if (parsed.data.targetPrice != null) updateData.targetPrice = parsed.data.targetPrice;
+  if (parsed.data.stopLoss != null) updateData.stopLoss = parsed.data.stopLoss;
   if (parsed.data.tradeType != null) updateData.tradeType = parsed.data.tradeType;
   if (parsed.data.riskLevel != null) updateData.riskLevel = parsed.data.riskLevel;
   if (parsed.data.notes != null) updateData.notes = parsed.data.notes;

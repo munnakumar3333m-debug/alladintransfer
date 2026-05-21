@@ -12,9 +12,9 @@ export interface CreateRecommendationRequest {
   stockName: string;
   nseSymbol: string;
   signalType: SignalType;
-  buyPrice: number;
-  targetPrice: number;
-  stopLoss: number;
+  buyPrice: string;
+  targetPrice: string;
+  stopLoss: string;
   tradeType: TradeType;
   riskLevel: string;
   notes?: string;

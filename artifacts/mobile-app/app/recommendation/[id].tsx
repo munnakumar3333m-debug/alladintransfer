@@ -85,11 +85,11 @@ export default function RecommendationDetailScreen() {
           </View>
 
           <View style={[styles.priceGrid, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <PriceBlock label="Entry Price" value={`₹${rec.buyPrice}`} colors={colors} />
+            <PriceBlock label="Entry Price" value={fmtPrice(rec.buyPrice)} colors={colors} />
             <Divider colors={colors} />
-            <PriceBlock label="Target Price" value={`₹${rec.targetPrice}`} color={colors.positive} colors={colors} />
+            <PriceBlock label="Target Price" value={fmtPrice(rec.targetPrice)} color={colors.positive} colors={colors} />
             <Divider colors={colors} />
-            <PriceBlock label="Stop Loss" value={`₹${rec.stopLoss}`} color={colors.negative} colors={colors} />
+            <PriceBlock label="Stop Loss" value={fmtPrice(rec.stopLoss)} color={colors.negative} colors={colors} />
           </View>
 
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -168,6 +168,12 @@ export default function RecommendationDetailScreen() {
       </Modal>
     </View>
   );
+}
+
+function fmtPrice(val: string | number | null | undefined): string {
+  if (val == null) return "—";
+  const s = String(val).trim();
+  return /^[\d.,]+$/.test(s) ? `₹${s}` : s;
 }
 
 function Divider({ colors }: { colors: ReturnType<typeof import("@/hooks/useColors").useColors> }) {

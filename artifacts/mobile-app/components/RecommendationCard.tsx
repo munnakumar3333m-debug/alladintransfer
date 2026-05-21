@@ -10,6 +10,12 @@ interface Props {
   onPress?: () => void;
 }
 
+function fmtPrice(val: string | number | null | undefined): string {
+  if (val == null) return "—";
+  const s = String(val).trim();
+  return /^[\d.,]+$/.test(s) ? `₹${s}` : s;
+}
+
 const STATUS_LABEL: Record<string, string> = {
   active: "Active",
   target_hit: "Target Hit",
@@ -115,14 +121,14 @@ export function RecommendationCard({ rec, onPress }: Props) {
       <View style={[styles.priceGrid, { borderColor: colors.border }]}>
         <PriceCell
           label="Entry Price"
-          value={`₹${rec.buyPrice}`}
+          value={fmtPrice(rec.buyPrice)}
           labelColor={colors.mutedForeground}
           valueColor={colors.foreground}
         />
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
         <PriceCell
           label="Target"
-          value={`₹${rec.targetPrice}`}
+          value={fmtPrice(rec.targetPrice)}
           labelColor={colors.mutedForeground}
           valueColor="#10B981"
           icon="target"
@@ -130,7 +136,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
         <PriceCell
           label="Stop Loss"
-          value={`₹${rec.stopLoss}`}
+          value={fmtPrice(rec.stopLoss)}
           labelColor={colors.mutedForeground}
           valueColor="#EF4444"
           icon="shield"

@@ -21,6 +21,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+function fmtPrice(val: string | number | null | undefined): string {
+  if (val == null) return "—";
+  const s = String(val).trim();
+  return /^[\d.,]+$/.test(s) ? `₹${s}` : s;
+}
+
 const STATUS_COLOR: Record<string, string> = {
   active: "text-amber-400 bg-amber-500/10",
   target_hit: "text-emerald-400 bg-emerald-500/10",
@@ -143,9 +149,9 @@ export default function RecommendationsPage() {
                     </td>
                     <td className="px-4 py-3 text-white font-bold">{r.nseSymbol}</td>
                     <td className="px-4 py-3 text-slate-300 max-w-[140px] truncate">{r.stockName}</td>
-                    <td className="px-4 py-3 text-slate-300">₹{r.buyPrice}</td>
-                    <td className="px-4 py-3 text-emerald-400">₹{r.targetPrice}</td>
-                    <td className="px-4 py-3 text-red-400">₹{r.stopLoss}</td>
+                    <td className="px-4 py-3 text-slate-300">{fmtPrice(String(r.buyPrice))}</td>
+                    <td className="px-4 py-3 text-emerald-400">{fmtPrice(String(r.targetPrice))}</td>
+                    <td className="px-4 py-3 text-red-400">{fmtPrice(String(r.stopLoss))}</td>
                     <td className="px-4 py-3"><span className="px-2 py-0.5 rounded text-xs text-purple-300 bg-purple-500/10 capitalize">{r.tradeType}</span></td>
                     <td className="px-4 py-3"><span className={`px-2 py-1 rounded-lg text-xs font-medium ${STATUS_COLOR[r.status] ?? "text-slate-400 bg-slate-800"}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
                     <td className="px-4 py-3">{pnl !== null ? <span className={`flex items-center gap-1 text-sm font-semibold ${pos ? "text-emerald-400" : "text-red-400"}`}>{pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}{pos ? "+" : ""}{pnl.toFixed(2)}%</span> : <span className="text-slate-600">—</span>}</td>
@@ -199,9 +205,6 @@ function CreateForm({ onCreate, isPending, onClose }: {
     onCreate({
       ...form,
       signalType,
-      buyPrice: parseFloat(form.buyPrice),
-      targetPrice: parseFloat(form.targetPrice),
-      stopLoss: parseFloat(form.stopLoss),
     } as any);
   };
 
@@ -221,9 +224,9 @@ function CreateForm({ onCreate, isPending, onClose }: {
           <FormField label="Stock Name" value={form.stockName} onChange={set("stockName")} required />
           <FormField label="NSE Symbol" value={form.nseSymbol} onChange={set("nseSymbol")} required />
           <FormField label="Date" type="date" value={form.date} onChange={set("date")} required />
-          <FormField label="Entry Price" type="number" value={form.buyPrice} onChange={set("buyPrice")} required />
-          <FormField label="Target Price" type="number" value={form.targetPrice} onChange={set("targetPrice")} required />
-          <FormField label="Stop Loss" type="number" value={form.stopLoss} onChange={set("stopLoss")} required />
+          <FormField label="Entry Price" value={form.buyPrice} onChange={set("buyPrice")} placeholder="e.g. 245.50 or CMP" required />
+          <FormField label="Target Price" value={form.targetPrice} onChange={set("targetPrice")} placeholder="e.g. 280 or 280-300" required />
+          <FormField label="Stop Loss" value={form.stopLoss} onChange={set("stopLoss")} placeholder="e.g. 230 or Below 230" required />
           <div className="space-y-1.5"><Label className="text-slate-300 text-xs">Trade Type</Label><select value={form.tradeType} onChange={set("tradeType") as any} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2"><option value="intraday">Intraday</option><option value="swing">Swing</option><option value="positional">Positional</option></select></div>
           <div className="space-y-1.5"><Label className="text-slate-300 text-xs">Risk Level</Label><select value={form.riskLevel} onChange={set("riskLevel") as any} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
           <div className="space-y-1.5 col-span-2 md:col-span-3"><Label className="text-slate-300 text-xs">Notes (optional)</Label><textarea value={form.notes} onChange={set("notes")} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 resize-none h-20" placeholder="Analysis notes..." /></div>
@@ -254,6 +257,6 @@ function PnlModal({ rec, onSave, isPending, onClose }: { rec: Recommendation; on
   return (<div className={`bg-slate-900 border rounded-2xl p-6 space-y-4 ${isBuy ? "border-emerald-500/30" : "border-red-500/30"}`}><div className="flex items-center gap-3"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${isBuy ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>{isBuy ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{rec.signalType}</span><h3 className="text-white font-semibold">Update P&L — {rec.nseSymbol}</h3></div><p className="text-slate-400 text-sm">Entry: ₹{rec.buyPrice} · Target: ₹{rec.targetPrice} · SL: ₹{rec.stopLoss}</p><div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><Label className="text-slate-300 text-xs">Exit Price</Label><Input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} type="number" placeholder="Exit price" className="bg-slate-800 border-slate-700 text-white" /></div><div className="space-y-1.5"><Label className="text-slate-300 text-xs">Status</Label><select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2"><option value="target_hit">Target Hit</option><option value="stop_loss_hit">Stop Loss Hit</option><option value="partial_profit">Partial Profit</option><option value="closed">Closed</option></select></div></div>{exitPrice && (<div className="bg-slate-800 rounded-xl p-3"><p className="text-slate-400 text-xs mb-1">Preview P&L</p>{(() => { const ep = parseFloat(String(exitPrice)); const bp = parseFloat(String(rec.buyPrice)); const pnl = isNaN(ep) || isNaN(bp) ? null : ((ep - bp) / bp) * 100; return pnl !== null ? (<p className={`text-lg font-bold ${pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>{pnl >= 0 ? "+" : ""}{pnl.toFixed(2)}%</p>) : null; })()}</div>)}<div className="flex gap-3 justify-end"><Button variant="ghost" onClick={onClose} className="text-slate-400">Cancel</Button><Button onClick={handleSave} disabled={isPending} className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold">{isPending ? "Saving..." : "Save P&L"}</Button></div></div>);
 }
 
-function FormField({ label, value, onChange, type = "text", required }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; required?: boolean; }) {
-  return (<div className="space-y-1.5"><Label className="text-slate-300 text-xs">{label}</Label><Input value={value} onChange={onChange} type={type} required={required} className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" /></div>);
+function FormField({ label, value, onChange, type = "text", required, placeholder }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; required?: boolean; placeholder?: string; }) {
+  return (<div className="space-y-1.5"><Label className="text-slate-300 text-xs">{label}</Label><Input value={value} onChange={onChange} type={type} required={required} placeholder={placeholder} className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" /></div>);
 }

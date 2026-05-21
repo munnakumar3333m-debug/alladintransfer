@@ -602,11 +602,11 @@ components:
         signalType:
           $ref: "#/components/schemas/SignalType"
         buyPrice:
-          type: number
+          type: string
         targetPrice:
-          type: number
+          type: string
         stopLoss:
-          type: number
+          type: string
         tradeType:
           $ref: "#/components/schemas/TradeType"
         riskLevel:
@@ -661,11 +661,11 @@ components:
         signalType:
           $ref: "#/components/schemas/SignalType"
         buyPrice:
-          type: number
+          type: string
         targetPrice:
-          type: number
+          type: string
         stopLoss:
-          type: number
+          type: string
         tradeType:
           $ref: "#/components/schemas/TradeType"
         riskLevel:
@@ -691,11 +691,11 @@ components:
         signalType:
           $ref: "#/components/schemas/SignalType"
         buyPrice:
-          type: number
+          type: string
         targetPrice:
-          type: number
+          type: string
         stopLoss:
-          type: number
+          type: string
         tradeType:
           $ref: "#/components/schemas/TradeType"
         riskLevel:
