@@ -7,53 +7,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { WebView, type WebViewMessageEvent } from "react-native-webview";
+import { WebView } from "react-native-webview";
 
 import { useColors } from "@/hooks/useColors";
 
 /* ── interval mapping ──────────────────────────────────── */
 const RANGES: { label: string; tv: string }[] = [
-  { label: "1D",  tv: "1" },   // 1-minute candles for 1 day
-  { label: "1W",  tv: "15" },  // 15-minute candles for 1 week
-  { label: "1M",  tv: "D" },   // daily candles for 1 month
-  { label: "3M",  tv: "D" },   // daily candles for 3 months
-  { label: "1Y",  tv: "W" },   // weekly candles for 1 year
+  { label: "1D",  tv: "1" },
+  { label: "1W",  tv: "15" },
+  { label: "1M",  tv: "D" },
+  { label: "3M",  tv: "D" },
+  { label: "1Y",  tv: "W" },
 ];
 
 interface StockChartProps {
   symbol: string;
-}
-
-/* ── injected JS: hide nav/header, force dark, set symbol ─ */
-function buildInjectScript(symbol: string, interval: string): string {
-  const tvSymbol = `NSE:${symbol}`;
-  return `
-    (function() {
-      try {
-        // Remove top header bar
-        const selectors = [
-          '.tv-header', '#tv-header', '[class*="header-"]',
-          '[class*="Header"]', '[data-role="header"]',
-        ];
-        selectors.forEach(s => {
-          document.querySelectorAll(s).forEach(el => el.style.display = 'none');
-        });
-      } catch(e) {}
-    })();
-    true;
-  `;
+  onInteractionStart?: () => void;
+  onInteractionEnd?: () => void;
 }
 
 function chartUrl(symbol: string, interval: string, isDark: boolean): string {
   const tvSymbol = encodeURIComponent(`NSE:${symbol}`);
   const theme    = isDark ? "dark" : "light";
-  // Use TradingView's full chart app — not the embed widget
   return (
     `https://www.tradingview.com/chart/` +
     `?symbol=${tvSymbol}` +
     `&interval=${encodeURIComponent(interval)}` +
     `&theme=${theme}` +
-    `&style=1` +           // 1 = candlestick
+    `&style=1` +
     `&timezone=Asia%2FKolkata` +
     `&locale=en` +
     `&hide_top_toolbar=0` +
@@ -61,40 +42,35 @@ function chartUrl(symbol: string, interval: string, isDark: boolean): string {
     `&allow_symbol_change=0` +
     `&save_image=0` +
     `&hide_side_toolbar=0` +
-    `&studies=RSI%40tv-basicstudies` // RSI indicator
+    `&hide_volume=1` +
+    `&withdateranges=1`
   );
 }
 
-/* ── JS to switch interval without reloading ──────────────── */
-function switchIntervalScript(interval: string): string {
-  return `
-    (function() {
-      try {
-        if (window.tvWidget && window.tvWidget.chart) {
-          window.tvWidget.chart().setResolution('${interval}');
-        }
-      } catch(e) {}
-    })();
-    true;
-  `;
-}
+/* ── JS injected after load: remove volume pane if still visible ── */
+const INJECT_JS = `
+(function() {
+  function hideVolume() {
+    document.querySelectorAll(
+      '[data-name="volume"], .pane-legend-title--volume, [class*="volumePane"]'
+    ).forEach(function(el) { el.style.display = 'none'; });
+  }
+  hideVolume();
+  setTimeout(hideVolume, 1500);
+  setTimeout(hideVolume, 3000);
+})();
+true;
+`;
 
-export function StockChart({ symbol }: StockChartProps) {
+export function StockChart({ symbol, onInteractionStart, onInteractionEnd }: StockChartProps) {
   const colors     = useColors();
   const webviewRef = useRef<WebView>(null);
-  const [rangeIdx, setRangeIdx] = useState(2); // default 1M
+  const [rangeIdx, setRangeIdx] = useState(2);
   const [loading, setLoading]   = useState(true);
 
-  const isDark = colors.background.toLowerCase() === "#0d1117";
+  const isDark = colors.card === "#111827" || colors.background === "#0d1117" || colors.background.toLowerCase() < "#888888";
   const range  = RANGES[rangeIdx];
   const url    = chartUrl(symbol, range.tv, isDark);
-
-  function handleRangeChange(idx: number) {
-    setRangeIdx(idx);
-    setLoading(true);
-    // Try injecting interval change first; if widget isn't available the key change will reload
-    webviewRef.current?.injectJavaScript(switchIntervalScript(RANGES[idx].tv));
-  }
 
   if (Platform.OS === "web") {
     return (
@@ -108,16 +84,17 @@ export function StockChart({ symbol }: StockChartProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
+
       {/* Title + range selector */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.foreground }]}>
-          {symbol} · Live Chart
+          {symbol}
         </Text>
         <View style={styles.ranges}>
           {RANGES.map((r, i) => (
             <TouchableOpacity
               key={r.label}
-              onPress={() => handleRangeChange(i)}
+              onPress={() => { setRangeIdx(i); setLoading(true); }}
               style={[
                 styles.rangeBtn,
                 {
@@ -134,13 +111,18 @@ export function StockChart({ symbol }: StockChartProps) {
         </View>
       </View>
 
-      {/* Chart */}
-      <View style={styles.chartWrap}>
+      {/* Chart — touch handlers lock parent scroll */}
+      <View
+        style={styles.chartWrap}
+        onTouchStart={onInteractionStart}
+        onTouchEnd={onInteractionEnd}
+        onTouchCancel={onInteractionEnd}
+      >
         {loading && (
           <View style={[styles.loadingOverlay, { backgroundColor: colors.card }]}>
             <ActivityIndicator color={colors.primary} size="large" />
             <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
-              Loading {symbol} chart…
+              Loading {symbol}…
             </Text>
           </View>
         )}
@@ -151,14 +133,17 @@ export function StockChart({ symbol }: StockChartProps) {
           style={styles.webview}
           onLoadEnd={() => {
             setLoading(false);
-            webviewRef.current?.injectJavaScript(buildInjectScript(symbol, range.tv));
+            webviewRef.current?.injectJavaScript(INJECT_JS);
           }}
+          onError={() => setLoading(false)}
           javaScriptEnabled
           domStorageEnabled
           thirdPartyCookiesEnabled
           sharedCookiesEnabled
           allowsInlineMediaPlayback
           mediaPlaybackRequiresUserAction={false}
+          scrollEnabled
+          nestedScrollEnabled
           originWhitelist={["*"]}
           mixedContentMode="always"
           userAgent={
@@ -166,7 +151,6 @@ export function StockChart({ symbol }: StockChartProps) {
             "AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/120.0.0.0 Mobile Safari/537.36"
           }
-          onError={() => setLoading(false)}
         />
       </View>
     </View>
@@ -182,7 +166,7 @@ const styles = StyleSheet.create({
   rangeText:      { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   chartWrap:      { height: 420, borderRadius: 12, overflow: "hidden", position: "relative" },
   webview:        { flex: 1 },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", gap: 12, zIndex: 10 },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", gap: 12, zIndex: 10, borderRadius: 12 },
   loadingText:    { fontSize: 13, fontFamily: "Inter_400Regular" },
   webFallback:    { borderRadius: 16, borderWidth: 1, padding: 24, alignItems: "center", justifyContent: "center" },
   webFallbackText:{ fontSize: 13, fontFamily: "Inter_400Regular" },

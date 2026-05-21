@@ -33,6 +33,8 @@ export default function RecommendationDetailScreen() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
 
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
   const { data: rec, isLoading } = useGetRecommendation(Number(id));
   const screenshots = useMemo(() => {
     const list = rec?.screenshots?.length ? rec.screenshots : rec?.screenshotUrl ? [rec.screenshotUrl] : [];
@@ -64,6 +66,7 @@ export default function RecommendationDetailScreen() {
         <ActivityIndicator color={colors.primary} style={styles.loader} size="large" />
       ) : rec ? (
         <ScrollView
+          scrollEnabled={scrollEnabled}
           contentContainerStyle={[
             styles.content,
             {
@@ -98,7 +101,11 @@ export default function RecommendationDetailScreen() {
             <InfoRow label="Trade Type" value={rec.tradeType.toUpperCase()} colors={colors} />
           </View>
 
-          <StockChart symbol={rec.nseSymbol} />
+          <StockChart
+            symbol={rec.nseSymbol}
+            onInteractionStart={() => setScrollEnabled(false)}
+            onInteractionEnd={() => setScrollEnabled(true)}
+          />
 
           {screenshots.length > 0 && (
             <View style={[styles.screenshotCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
