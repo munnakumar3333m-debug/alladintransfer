@@ -22,7 +22,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RecommendationCard } from "@/components/RecommendationCard";
-import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { useColors } from "@/hooks/useColors";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -203,14 +202,6 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-
-        {/* ── Subscription banner ─────────────────────────────────── */}
-        {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
-          <SubscriptionBanner
-            type={sub.subscriptionType === "expired" ? "expired" : "trial"}
-            daysLeft={daysLeft > 0 ? daysLeft : undefined}
-          />
-        )}
 
         {/* ── Stats row ───────────────────────────────────────────── */}
         {stats ? (

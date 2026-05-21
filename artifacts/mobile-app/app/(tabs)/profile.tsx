@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
+import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 
 interface ReferralStats {
   code: string;
@@ -125,6 +126,13 @@ export default function ProfileScreen() {
           {user?.email ? <Text style={[styles.userPhone, { color: colors.mutedForeground }]}>{user.email}</Text> : null}
         </View>
       </View>
+
+      {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
+        <SubscriptionBanner
+          type={sub.subscriptionType === "expired" ? "expired" : "trial"}
+          daysLeft={(sub.daysRemaining ?? 0) > 0 ? sub.daysRemaining : undefined}
+        />
+      )}
 
       <View style={[styles.subCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.subRow}>
