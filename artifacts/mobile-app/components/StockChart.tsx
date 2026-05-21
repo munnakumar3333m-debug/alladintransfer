@@ -22,33 +22,53 @@ interface StockChartProps {
   symbol: string;
 }
 
-function chartUrl(symbol: string, interval: string, isDark: boolean): string {
-  const tvSymbol = encodeURIComponent(
-    symbol.includes(":") ? symbol : `NSE:${symbol}`
-  );
+function buildHtml(symbol: string, interval: string, isDark: boolean): string {
+  const tvSymbol = symbol.includes(":") ? symbol : `NSE:${symbol}`;
   const theme = isDark ? "dark" : "light";
-  return (
-    `https://www.tradingview.com/widgetembed/` +
-    `?symbol=${tvSymbol}` +
-    `&interval=${encodeURIComponent(interval)}` +
-    `&theme=${theme}` +
-    `&style=1` +
-    `&timezone=Asia%2FKolkata` +
-    `&locale=en` +
-    `&hide_side_toolbar=1` +
-    `&allow_symbol_change=0` +
-    `&save_image=0` +
-    `&studies=RSI%40tv-basicstudies`
-  );
+  const bg = isDark ? "#0D1117" : "#ffffff";
+
+  const config = JSON.stringify({
+    autosize: true,
+    symbol: tvSymbol,
+    interval,
+    timezone: "Asia/Kolkata",
+    theme,
+    style: "1",
+    locale: "en",
+    allow_symbol_change: false,
+    calendar: false,
+    hide_side_toolbar: true,
+    support_host: "https://www.tradingview.com",
+  });
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; background:${bg}; overflow:hidden; }
+  .tradingview-widget-container { width:100%; height:100%; }
+  .tradingview-widget-container__widget { width:100%; height:100%; }
+</style>
+</head>
+<body>
+<div class="tradingview-widget-container">
+  <div class="tradingview-widget-container__widget"></div>
+  <script type="text/javascript"
+    src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+    async="true">${config}</script>
+</div>
+</body>
+</html>`;
 }
 
 export function StockChart({ symbol }: StockChartProps) {
   const colors = useColors();
   const [interval, setInterval] = useState("D");
   const [loading, setLoading] = useState(true);
-  const isDark =
-    colors.background.toLowerCase() === "#0d1117" ||
-    colors.background === "#0D1117";
+  const isDark = colors.background.toLowerCase() === "#0d1117";
 
   if (Platform.OS === "web") {
     return (
@@ -64,8 +84,6 @@ export function StockChart({ symbol }: StockChartProps) {
       </View>
     );
   }
-
-  const url = chartUrl(symbol, interval, isDark);
 
   return (
     <View
@@ -118,19 +136,17 @@ export function StockChart({ symbol }: StockChartProps) {
             style={[styles.loadingOverlay, { backgroundColor: colors.card }]}
           >
             <ActivityIndicator color={colors.primary} />
-            <Text
-              style={[
-                styles.loadingText,
-                { color: colors.mutedForeground },
-              ]}
-            >
+            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
               Loading {symbol} chart…
             </Text>
           </View>
         )}
         <WebView
           key={`${symbol}-${interval}`}
-          source={{ uri: url }}
+          source={{
+            html: buildHtml(symbol, interval, isDark),
+            baseUrl: "https://www.tradingview.com",
+          }}
           style={styles.webview}
           onLoadEnd={() => setLoading(false)}
           javaScriptEnabled
@@ -139,6 +155,7 @@ export function StockChart({ symbol }: StockChartProps) {
           originWhitelist={["*"]}
           mixedContentMode="always"
           thirdPartyCookiesEnabled
+          sharedCookiesEnabled
         />
       </View>
     </View>
