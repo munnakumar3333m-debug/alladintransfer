@@ -26,11 +26,6 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
   closed:         { label: "Closed",        color: "#64748B", bg: "#64748B18" },
 };
 
-const RISK_META: Record<string, { color: string; label: string }> = {
-  low:    { color: "#10B981", label: "Low Risk" },
-  medium: { color: "#F59E0B", label: "Med Risk" },
-  high:   { color: "#EF4444", label: "High Risk" },
-};
 
 export function RecommendationCard({ rec, onPress }: Props) {
   const colors = useColors();
@@ -44,7 +39,6 @@ export function RecommendationCard({ rec, onPress }: Props) {
   const cardBorder    = signalColor + "30";
 
   const status = STATUS_META[rec.status] ?? STATUS_META.active;
-  const risk   = RISK_META[rec.riskLevel] ?? RISK_META.medium;
 
   return (
     <TouchableOpacity
@@ -111,9 +105,6 @@ export function RecommendationCard({ rec, onPress }: Props) {
           <Text style={[styles.stockName, { color: colors.mutedForeground }]} numberOfLines={1}>
             {rec.stockName}
           </Text>
-        </View>
-        <View style={[styles.riskBadge, { backgroundColor: risk.color + "18", borderColor: risk.color + "35" }]}>
-          <Text style={[styles.riskText, { color: risk.color }]}>{risk.label.toUpperCase()}</Text>
         </View>
       </View>
 
