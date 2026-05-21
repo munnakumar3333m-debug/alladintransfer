@@ -64,12 +64,36 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   if (referrerId) {
     const { referralsTable } = await import("@workspace/db");
+    const REWARD_DAYS = 7;
+    const now = new Date();
+
     await db.insert(referralsTable).values({
       referrerId,
       referredId: user.id,
-      status: "pending",
-      rewardDays: 30,
+      status: "rewarded",
+      rewardDays: REWARD_DAYS,
+      rewardedAt: now,
     });
+
+    const [referrer] = await db.select().from(usersTable).where(eq(usersTable.id, referrerId));
+    if (referrer) {
+      if (referrer.subscriptionType === "premium" && referrer.premiumExpiryDate) {
+        const base = referrer.premiumExpiryDate > now ? referrer.premiumExpiryDate : now;
+        await db.update(usersTable).set({
+          premiumExpiryDate: new Date(base.getTime() + REWARD_DAYS * 86_400_000),
+        }).where(eq(usersTable.id, referrerId));
+      } else if (referrer.subscriptionType === "trial" && referrer.trialExpiryDate) {
+        const base = referrer.trialExpiryDate > now ? referrer.trialExpiryDate : now;
+        await db.update(usersTable).set({
+          trialExpiryDate: new Date(base.getTime() + REWARD_DAYS * 86_400_000),
+        }).where(eq(usersTable.id, referrerId));
+      } else {
+        await db.update(usersTable).set({
+          subscriptionType: "trial",
+          trialExpiryDate: new Date(now.getTime() + REWARD_DAYS * 86_400_000),
+        }).where(eq(usersTable.id, referrerId));
+      }
+    }
   }
 
   const token = signToken({ userId: user.id, isAdmin: user.isAdmin });

@@ -85,15 +85,37 @@ router.post("/referrals/apply", requireAuth, async (req, res): Promise<void> => 
     return;
   }
 
+  const REWARD_DAYS = 7;
+  const now = new Date();
+
   await db.update(usersTable).set({ referredBy: referrer.id }).where(eq(usersTable.id, req.user!.id));
+
   await db.insert(referralsTable).values({
     referrerId: referrer.id,
     referredId: req.user!.id,
-    status: "pending",
-    rewardDays: 7,
+    status: "rewarded",
+    rewardDays: REWARD_DAYS,
+    rewardedAt: now,
   });
 
-  res.json({ message: "Referral code applied! Your friend will earn 7 free days when you subscribe." });
+  if (referrer.subscriptionType === "premium" && referrer.premiumExpiryDate) {
+    const base = referrer.premiumExpiryDate > now ? referrer.premiumExpiryDate : now;
+    await db.update(usersTable).set({
+      premiumExpiryDate: new Date(base.getTime() + REWARD_DAYS * 86_400_000),
+    }).where(eq(usersTable.id, referrer.id));
+  } else if (referrer.subscriptionType === "trial" && referrer.trialExpiryDate) {
+    const base = referrer.trialExpiryDate > now ? referrer.trialExpiryDate : now;
+    await db.update(usersTable).set({
+      trialExpiryDate: new Date(base.getTime() + REWARD_DAYS * 86_400_000),
+    }).where(eq(usersTable.id, referrer.id));
+  } else {
+    await db.update(usersTable).set({
+      subscriptionType: "trial",
+      trialExpiryDate: new Date(now.getTime() + REWARD_DAYS * 86_400_000),
+    }).where(eq(usersTable.id, referrer.id));
+  }
+
+  res.json({ message: "Referral code applied! Your friend has earned 7 extra free days." });
 });
 
 router.get("/admin/referrals", requireAuth, requireAdmin, async (req, res): Promise<void> => {
