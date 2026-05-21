@@ -41,86 +41,52 @@ function formatCount(n: number) {
   return n.toLocaleString("en-IN");
 }
 
-const LABELS = [
-  (n: string) => `🔥 ${n} Traders Online`,
-  (n: string) => `${n} Traders Active`,
-  (n: string) => `🔥 ${n} Traders Online`,
-  (n: string) => `${n} Live Traders`,
-];
+function buildLabel(n: string) {
+  return `Active Traders ${n}`;
+}
 
 function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
   const [count, setCount] = useState(() => randomBetween(800, 2200));
-  const [labelIdx, setLabelIdx] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Blinking/pulse loop for the live dot
+  // Dot pulse loop
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.2, duration: 700, useNativeDriver: false }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: false }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: false }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: false }),
       ])
     );
     loop.start();
     return () => loop.stop();
   }, [pulseAnim]);
 
-  // Count update with fade+slide transition
+  // Count update: quick fade out → swap → fade in
   const tick = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: false }),
-      Animated.timing(slideAnim, { toValue: -6, duration: 180, useNativeDriver: false }),
-    ]).start(() => {
+    Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: false }).start(() => {
       setCount((prev) => naturalNext(prev));
-      setLabelIdx((prev) => (Math.random() > 0.7 ? (prev + 1) % LABELS.length : prev));
-      slideAnim.setValue(6);
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 240, useNativeDriver: false }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 240, useNativeDriver: false }),
-      ]).start();
+      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start();
     });
-  }, [fadeAnim, slideAnim]);
+  }, [fadeAnim]);
 
   useEffect(() => {
-    const schedule = () => {
-      const delay = randomBetween(5000, 10000);
+    const schedule = (): ReturnType<typeof setTimeout> => {
       return setTimeout(() => {
         tick();
-        const id = schedule();
-        return id;
-      }, delay);
+        schedule();
+      }, randomBetween(5000, 10000));
     };
     const id = schedule();
     return () => clearTimeout(id);
   }, [tick]);
 
   return (
-    <View
-      style={[
-        styles.widget,
-        { bottom: bottomOffset },
-      ]}
-      pointerEvents="none"
-    >
-      {/* Green glow ring */}
-      <View style={styles.glowRing} />
-
-      <Animated.View
-        style={[
-          styles.widgetInner,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-        ]}
-      >
-        {/* Live dot */}
-        <View style={styles.dotWrapper}>
-          <View style={styles.dotBase} />
-          <Animated.View style={[styles.dotPulse, { opacity: pulseAnim }]} />
-        </View>
-
+    <View style={[styles.widget, { bottom: bottomOffset }]} pointerEvents="none">
+      <Animated.View style={[styles.widgetInner, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.dot, { opacity: pulseAnim }]} />
         <Text style={styles.widgetText} numberOfLines={1}>
-          {LABELS[labelIdx](formatCount(count))}
+          {buildLabel(formatCount(count))}
         </Text>
       </Animated.View>
     </View>
@@ -358,62 +324,36 @@ const styles = StyleSheet.create({
   // ── Widget ──────────────────────────────────────────────────────────────────
   widget: {
     position: "absolute",
-    right: 14,
+    right: 12,
     alignItems: "flex-end",
-  },
-  glowRing: {
-    position: "absolute",
-    inset: -4,
-    borderRadius: 24,
-    // green glow via shadow
-    shadowColor: "#10b981",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 10,
-    elevation: 8,
-    backgroundColor: "transparent",
   },
   widgetInner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
-    backgroundColor: "rgba(13, 17, 23, 0.88)",
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    borderRadius: 20,
+    gap: 5,
+    backgroundColor: "rgba(10, 14, 20, 0.82)",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.35)",
-    // fallback shadow
+    borderColor: "rgba(16, 185, 129, 0.25)",
     shadowColor: "#10b981",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  dotWrapper: {
-    width: 9,
-    height: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dotBase: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
     backgroundColor: "#10b981",
-    position: "absolute",
-  },
-  dotPulse: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: "#10b981",
-    position: "absolute",
   },
   widgetText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
 });
