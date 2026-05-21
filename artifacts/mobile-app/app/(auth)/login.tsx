@@ -72,8 +72,8 @@ export default function LoginScreen() {
             <Feather name="trending-up" size={32} color={colors.primaryForeground} />
           </View>
           <Text style={[styles.appName, { color: colors.foreground }]}>Alladin</Text>
-          <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
-            Premium Stock Intelligence
+          <Text style={[styles.tagline, { color: colors.primary }]}>
+            Manufacturing Millionaires
           </Text>
         </View>
 

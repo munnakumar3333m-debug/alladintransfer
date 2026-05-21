@@ -83,6 +83,15 @@ const splash = StyleSheet.create({
     color: "#FFFFFF",
     letterSpacing: 10,
   },
+  tagline: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    letterSpacing: 3,
+    marginTop: 10,
+    opacity: 0.85,
+    textTransform: "uppercase",
+  },
 });
 
 export default function RootLayout() {
@@ -101,6 +110,7 @@ export default function RootLayout() {
     return (
       <View style={splash.container}>
         <Text style={splash.text}>ALLADIN</Text>
+        <Text style={splash.tagline}>Manufacturing Millionaires</Text>
       </View>
     );
   }
