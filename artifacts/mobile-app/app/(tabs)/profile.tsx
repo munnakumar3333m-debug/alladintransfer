@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   Alert,
+  Linking,
   Platform,
   ScrollView,
   Share,
@@ -49,6 +50,18 @@ export default function ProfileScreen() {
       return res.json();
     },
   });
+
+  const handleCall = () => {
+    Linking.openURL("tel:+918429054622").catch(() =>
+      Alert.alert("Error", "Unable to open phone app.")
+    );
+  };
+
+  const handleWhatsApp = () => {
+    Linking.openURL("https://wa.me/918429054622").catch(() =>
+      Alert.alert("Error", "WhatsApp is not available on this device.")
+    );
+  };
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -195,6 +208,38 @@ export default function ProfileScreen() {
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Pending</Text>
           </View>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Support</Text>
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={handleCall}
+          activeOpacity={0.75}
+        >
+          <View style={[styles.menuIconBox, { backgroundColor: "#10b98122" }]}>
+            <Feather name="phone" size={16} color="#10b981" />
+          </View>
+          <View style={styles.menuTextBlock}>
+            <Text style={[styles.menuText, { color: colors.foreground }]}>Call Support</Text>
+            <Text style={[styles.menuSub, { color: colors.mutedForeground }]}>+91 84290 54622</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={handleWhatsApp}
+          activeOpacity={0.75}
+        >
+          <View style={[styles.menuIconBox, { backgroundColor: "#25D36622" }]}>
+            <Feather name="message-circle" size={16} color="#25D366" />
+          </View>
+          <View style={styles.menuTextBlock}>
+            <Text style={[styles.menuText, { color: colors.foreground }]}>Chat on WhatsApp</Text>
+            <Text style={[styles.menuSub, { color: colors.mutedForeground }]}>+91 84290 54622</Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -429,6 +474,21 @@ const styles = StyleSheet.create({
   },
   menuArrow: {
     marginLeft: "auto",
+  },
+  menuIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  menuSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
   },
   version: {
     fontSize: 12,
