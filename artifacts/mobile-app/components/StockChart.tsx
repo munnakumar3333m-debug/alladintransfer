@@ -2,12 +2,19 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { CandlestickChart } from "react-native-gifted-charts";
+import {
+  G,
+  Line,
+  Rect,
+  Svg,
+  Text as SvgText,
+} from "react-native-svg";
 
 import { useColors } from "@/hooks/useColors";
 
@@ -37,6 +44,7 @@ interface StockChartProps {
   symbol: string;
 }
 
+/* ── data fetching ─────────────────────────────────────── */
 function useStockChart(symbol: string, range: string) {
   const [data, setData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,9 +64,7 @@ function useStockChart(symbol: string, range: string) {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<ChartData>;
       })
-      .then((d) => {
-        if (!cancelled) { setData(d); setLoading(false); }
-      })
+      .then((d) => { if (!cancelled) { setData(d); setLoading(false); } })
       .catch((e: unknown) => {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : "Failed to load");
@@ -72,6 +78,156 @@ function useStockChart(symbol: string, range: string) {
   return { data, loading, error };
 }
 
+/* ── SVG candlestick chart ─────────────────────────────── */
+const CHART_HEIGHT   = 220;
+const YAXIS_WIDTH    = 58;
+const XAXIS_HEIGHT   = 24;
+const CANDLE_GAP     = 2;
+const PLOT_H         = CHART_HEIGHT - XAXIS_HEIGHT;
+
+function lerp(v: number, minV: number, maxV: number, maxPx: number): number {
+  if (maxV === minV) return maxPx / 2;
+  return maxPx - ((v - minV) / (maxV - minV)) * maxPx;
+}
+
+interface CandleChartProps {
+  points: ChartPoint[];
+  colors: ReturnType<typeof import("@/hooks/useColors").useColors>;
+}
+
+function CandleChart({ points, colors }: CandleChartProps) {
+  const screenW = Dimensions.get("window").width;
+  const plotW   = screenW - 64 - YAXIS_WIDTH;
+  const totalW  = Math.max(plotW, points.length * 14);
+
+  const allHighs = points.map((p) => p.high);
+  const allLows  = points.map((p) => p.low);
+  const maxV     = Math.max(...allHighs);
+  const minV     = Math.min(...allLows);
+  const pad      = (maxV - minV) * 0.05;
+  const hi       = maxV + pad;
+  const lo       = minV - pad;
+
+  const candleW  = Math.max(4, Math.min(14, totalW / points.length - CANDLE_GAP));
+  const step     = totalW / points.length;
+
+  // Y-axis labels
+  const yTicks = 4;
+  const yLabels = Array.from({ length: yTicks + 1 }, (_, i) => {
+    const v = lo + (hi - lo) * (i / yTicks);
+    return { y: lerp(v, lo, hi, PLOT_H), label: `₹${v.toFixed(0)}` };
+  });
+
+  // X-axis labels — show ~5 evenly spaced
+  const xStep = Math.max(1, Math.floor(points.length / 5));
+  const xLabels = points
+    .map((p, i) => ({ i, p }))
+    .filter(({ i }) => i % xStep === 0 || i === points.length - 1);
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexDirection: "row" }}
+    >
+      {/* Scrollable candle area */}
+      <Svg width={totalW} height={CHART_HEIGHT}>
+        <G>
+          {/* Grid lines */}
+          {yLabels.map(({ y }, i) => (
+            <Line
+              key={i}
+              x1={0}
+              y1={y}
+              x2={totalW}
+              y2={y}
+              stroke={colors.border}
+              strokeWidth={0.5}
+              strokeDasharray="3,3"
+            />
+          ))}
+
+          {/* Candles */}
+          {points.map((p, i) => {
+            const cx      = i * step + step / 2;
+            const yHigh   = lerp(p.high,  lo, hi, PLOT_H);
+            const yLow    = lerp(p.low,   lo, hi, PLOT_H);
+            const yOpen   = lerp(p.open,  lo, hi, PLOT_H);
+            const yClose  = lerp(p.close, lo, hi, PLOT_H);
+            const bullish = p.close >= p.open;
+            const fill    = bullish ? "#10B981" : "#EF4444";
+            const bodyTop = Math.min(yOpen, yClose);
+            const bodyH   = Math.max(1, Math.abs(yClose - yOpen));
+
+            return (
+              <G key={i}>
+                {/* Wick */}
+                <Line
+                  x1={cx}
+                  y1={yHigh}
+                  x2={cx}
+                  y2={yLow}
+                  stroke={fill}
+                  strokeWidth={1.5}
+                />
+                {/* Body */}
+                <Rect
+                  x={cx - candleW / 2}
+                  y={bodyTop}
+                  width={candleW}
+                  height={bodyH}
+                  fill={fill}
+                  rx={1}
+                />
+              </G>
+            );
+          })}
+
+          {/* X-axis labels */}
+          {xLabels.map(({ i, p }) => {
+            const cx = i * step + step / 2;
+            const d  = new Date(p.time);
+            const lbl =
+              points.length <= 20
+                ? d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+                : d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+            return (
+              <SvgText
+                key={i}
+                x={cx}
+                y={CHART_HEIGHT - 4}
+                fontSize={8}
+                fill={colors.mutedForeground}
+                textAnchor="middle"
+              >
+                {lbl}
+              </SvgText>
+            );
+          })}
+        </G>
+      </Svg>
+
+      {/* Fixed Y-axis */}
+      <Svg width={YAXIS_WIDTH} height={CHART_HEIGHT} style={StyleSheet.absoluteFillObject}>
+        {yLabels.map(({ y, label }, i) => (
+          <SvgText
+            key={i}
+            x={YAXIS_WIDTH - 2}
+            y={y + 4}
+            fontSize={8}
+            fill={colors.mutedForeground}
+            textAnchor="end"
+          >
+            {label}
+          </SvgText>
+        ))}
+      </Svg>
+    </ScrollView>
+  );
+}
+
+/* ── main component ────────────────────────────────────── */
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export function StockChart({ symbol }: StockChartProps) {
@@ -79,30 +235,13 @@ export function StockChart({ symbol }: StockChartProps) {
   const [range, setRange] = useState("1mo");
   const { data, loading, error } = useStockChart(symbol, range);
 
-  const pts = data?.points ?? [];
-
-  const isUp = pts.length >= 2
-    ? pts[pts.length - 1].close >= pts[0].close
-    : true;
-
-  const change = pts.length >= 2 ? pts[pts.length - 1].close - pts[0].close : 0;
+  const pts      = data?.points ?? [];
+  const isUp     = pts.length >= 2 ? pts[pts.length - 1].close >= pts[0].close : true;
+  const change   = pts.length >= 2 ? pts[pts.length - 1].close - pts[0].close : 0;
   const changePct = pts.length >= 2 && pts[0].close !== 0
     ? (change / pts[0].close) * 100 : 0;
-
-  const allHighs = pts.map((p) => p.high);
-  const allLows  = pts.map((p) => p.low);
-  const maxVal   = allHighs.length ? Math.max(...allHighs) : 0;
-  const minVal   = allLows.length  ? Math.min(...allLows)  : 0;
-
-  // gifted-charts candlestick data format
-  const candleData = pts.map((p) => ({
-    open:  p.open,
-    high:  p.high,
-    low:   p.low,
-    close: p.close,
-  }));
-
-  const chartWidth = SCREEN_WIDTH - 64;
+  const maxVal   = pts.length ? Math.max(...pts.map((p) => p.high))  : 0;
+  const minVal   = pts.length ? Math.min(...pts.map((p) => p.low))   : 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -111,7 +250,7 @@ export function StockChart({ symbol }: StockChartProps) {
       <View style={styles.header}>
         <View>
           <Text style={[styles.symbolText, { color: colors.foreground }]}>
-            {symbol} · Live Chart
+            {symbol} · Candlestick
           </Text>
           {data && (
             <View style={styles.priceRow}>
@@ -145,8 +284,8 @@ export function StockChart({ symbol }: StockChartProps) {
         </View>
       </View>
 
-      {/* Chart area */}
-      <View style={styles.chartArea}>
+      {/* Chart */}
+      <View style={[styles.chartArea, { borderColor: colors.border }]}>
         {loading && (
           <View style={[styles.center, { backgroundColor: colors.card }]}>
             <ActivityIndicator color={colors.primary} />
@@ -155,56 +294,30 @@ export function StockChart({ symbol }: StockChartProps) {
             </Text>
           </View>
         )}
-
         {error && !loading && (
           <View style={[styles.center, { backgroundColor: colors.card }]}>
             <Text style={[styles.statusText, { color: "#EF4444" }]}>Could not load chart</Text>
-            <Text style={[styles.statusSub, { color: colors.mutedForeground }]}>{error}</Text>
+            <Text style={[styles.statusSub,  { color: colors.mutedForeground }]}>{error}</Text>
           </View>
         )}
-
-        {!loading && !error && candleData.length > 0 && (
-          <CandlestickChart
-            data={candleData}
-            width={chartWidth}
-            height={240}
-            candleWidth={Math.max(4, Math.min(14, Math.floor(chartWidth / candleData.length) - 2))}
-            candleStickWidth={1.5}
-            bullColor="#10B981"
-            bearColor="#EF4444"
-            bullBorderColor="#10B981"
-            bearBorderColor="#EF4444"
-            lineWidth={1}
-            maxValue={maxVal * 1.01}
-            yAxisColor={colors.border}
-            xAxisColor={colors.border}
-            yAxisTextStyle={{ color: colors.mutedForeground, fontSize: 9 }}
-            rulesColor={colors.border}
-            rulesType="dashed"
-            noOfSections={4}
-            formatYLabel={(v: string) => `₹${Number(v).toFixed(0)}`}
-            backgroundColor={colors.card}
-            initialSpacing={6}
-            endSpacing={6}
-            showScrollIndicator
-          />
+        {!loading && !error && pts.length > 0 && (
+          <CandleChart points={pts} colors={colors} />
         )}
-
-        {!loading && !error && candleData.length === 0 && (
+        {!loading && !error && pts.length === 0 && (
           <View style={[styles.center, { backgroundColor: colors.card }]}>
-            <Text style={[styles.statusText, { color: colors.mutedForeground }]}>No data available</Text>
+            <Text style={[styles.statusText, { color: colors.mutedForeground }]}>No data</Text>
           </View>
         )}
       </View>
 
-      {/* Stats row */}
+      {/* Stats */}
       {data && (
         <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
-          <Stat label="High"   value={`₹${maxVal.toLocaleString("en-IN")}`} colors={colors} />
-          <Stat label="Low"    value={`₹${minVal.toLocaleString("en-IN")}`} colors={colors} />
-          <Stat label="Change" value={`${isUp ? "+" : ""}${changePct.toFixed(2)}%`}
+          <Stat label="High"    value={`₹${maxVal.toLocaleString("en-IN")}`} colors={colors} />
+          <Stat label="Low"     value={`₹${minVal.toLocaleString("en-IN")}`} colors={colors} />
+          <Stat label="Change"  value={`${isUp ? "+" : ""}${changePct.toFixed(2)}%`}
             valueColor={isUp ? "#10B981" : "#EF4444"} colors={colors} />
-          <Stat label="Candles" value={String(candleData.length)} colors={colors} />
+          <Stat label="Candles" value={String(pts.length)} colors={colors} />
         </View>
       )}
     </View>
@@ -233,7 +346,7 @@ const styles = StyleSheet.create({
   ranges:     { flexDirection: "row", gap: 5 },
   rangeBtn:   { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 7, borderWidth: 1 },
   rangeText:  { fontSize: 11, fontFamily: "Inter_600SemiBold" },
-  chartArea:  { height: 260, justifyContent: "center" },
+  chartArea:  { height: CHART_HEIGHT, borderRadius: 10, borderWidth: 1, overflow: "hidden" },
   center:     { flex: 1, alignItems: "center", justifyContent: "center", gap: 6 },
   statusText: { fontSize: 13, fontFamily: "Inter_500Medium" },
   statusSub:  { fontSize: 11, fontFamily: "Inter_400Regular" },
