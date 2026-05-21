@@ -88,8 +88,19 @@ export default function RecommendationDetailScreen() {
             </View>
           </View>
 
+          {/* Execution banner */}
+          <View style={[styles.execBanner, { backgroundColor: "#818CF812", borderColor: "#818CF830" }]}>
+            <View style={[styles.execIconBox, { backgroundColor: "#818CF820" }]}>
+              <Feather name="zap" size={16} color="#818CF8" />
+            </View>
+            <View style={styles.execText}>
+              <Text style={[styles.execTitle, { color: colors.foreground }]}>Intraday Trade · Execute at 9:15 AM</Text>
+              <Text style={[styles.execSub, { color: colors.mutedForeground }]}>Buy/Sell at the opening price when market opens. Close position same day before 3:15 PM.</Text>
+            </View>
+          </View>
+
           <View style={[styles.priceGrid, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <PriceBlock label="Entry Price" value={fmtPrice(rec.buyPrice)} colors={colors} />
+            <PriceBlock label="Entry @ 9:15 AM" value={fmtPrice(rec.buyPrice)} colors={colors} />
             <Divider colors={colors} />
             <PriceBlock label="Target Price" value={fmtPrice(rec.targetPrice)} color={colors.positive} colors={colors} />
             <Divider colors={colors} />
@@ -98,7 +109,8 @@ export default function RecommendationDetailScreen() {
 
           <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <InfoRow label="Risk Level" value={rec.riskLevel?.toUpperCase() ?? "-"} valueColor={RISK_COLOR[rec.riskLevel ?? "medium"]} colors={colors} />
-            <InfoRow label="Trade Type" value={rec.tradeType.toUpperCase()} colors={colors} />
+            <InfoRow label="Trade Type" value="INTRADAY" valueColor="#818CF8" colors={colors} />
+            <InfoRow label="Exit By" value="3:15 PM (Same Day)" valueColor={colors.warning} colors={colors} />
           </View>
 
           <StockChart
@@ -254,6 +266,11 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3 },
   notesCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
   notes: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22 },
+  execBanner: { borderRadius: 14, borderWidth: 1, padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  execIconBox: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  execText: { flex: 1, gap: 4 },
+  execTitle: { fontSize: 13, fontWeight: "700", fontFamily: "Inter_700Bold" },
+  execSub: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.95)", justifyContent: "center" },
   modalClose: { position: "absolute", top: 54, right: 18, zIndex: 2, width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.12)" },
   fullImage: { alignSelf: "center" },

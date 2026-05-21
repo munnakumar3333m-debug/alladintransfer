@@ -422,7 +422,7 @@ export default function HomeScreen() {
                 No picks today yet
               </Text>
               <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                New recommendations are posted every morning before market opens. Check back at 9 AM.
+                Intraday signals are posted before 9:00 AM. Execute at 9:15 AM opening price and close before 3:15 PM.
               </Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { borderColor: colors.primary + "50" }]}

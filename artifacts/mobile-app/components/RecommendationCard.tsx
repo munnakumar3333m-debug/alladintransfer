@@ -25,12 +25,6 @@ const STATUS_LABEL: Record<string, string> = {
   closed: "Closed",
 };
 
-const TRADE_COLOR: Record<string, string> = {
-  intraday: "#818CF8",
-  swing: "#F59E0B",
-  positional: "#06B6D4",
-};
-
 const RISK_COLOR: Record<string, string> = {
   low: "#10B981",
   medium: "#F59E0B",
@@ -42,7 +36,6 @@ export function RecommendationCard({ rec, onPress }: Props) {
 
   const pnl = rec.pnlPercent ? parseFloat(String(rec.pnlPercent)) : null;
   const isPositive = pnl !== null && pnl >= 0;
-  const tradeColor = TRADE_COLOR[rec.tradeType] ?? colors.mutedForeground;
   const riskColor = RISK_COLOR[rec.riskLevel] ?? colors.mutedForeground;
 
   const isBuy = rec.signalType === "BUY";
@@ -85,6 +78,11 @@ export function RecommendationCard({ rec, onPress }: Props) {
           <Text style={[styles.signalLabel, { color: signalColor }]}>
             {isBuy ? "BUY" : "SELL"}
           </Text>
+          {/* Intraday execution chip */}
+          <View style={[styles.intradayChip, { backgroundColor: "#818CF822", borderColor: "#818CF840" }]}>
+            <Feather name="zap" size={9} color="#818CF8" />
+            <Text style={[styles.intradayChipText, { color: "#818CF8" }]}>Intraday · 9:15 AM</Text>
+          </View>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}>
           <Text style={[styles.statusText, { color: statusColor }]}>
@@ -103,27 +101,21 @@ export function RecommendationCard({ rec, onPress }: Props) {
             {rec.stockName}
           </Text>
         </View>
-        <View style={styles.badgesRow}>
-          <View style={[styles.badge, { backgroundColor: tradeColor + "22" }]}>
-            <Text style={[styles.badgeText, { color: tradeColor }]}>
-              {rec.tradeType.toUpperCase()}
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: riskColor + "22" }]}>
-            <Text style={[styles.badgeText, { color: riskColor }]}>
-              {rec.riskLevel.toUpperCase()}
-            </Text>
-          </View>
+        <View style={[styles.badge, { backgroundColor: riskColor + "22" }]}>
+          <Text style={[styles.badgeText, { color: riskColor }]}>
+            {rec.riskLevel.toUpperCase()} RISK
+          </Text>
         </View>
       </View>
 
       {/* Price grid */}
       <View style={[styles.priceGrid, { borderColor: colors.border }]}>
         <PriceCell
-          label="Entry Price"
+          label="Entry @ 9:15 AM"
           value={fmtPrice(rec.buyPrice)}
           labelColor={colors.mutedForeground}
           valueColor={colors.foreground}
+          icon="clock"
         />
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
         <PriceCell
@@ -217,7 +209,8 @@ const styles = StyleSheet.create({
   signalLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
+    flex: 1,
   },
   signalIconWrap: {
     width: 36,
@@ -231,6 +224,20 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.5,
+  },
+  intradayChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  intradayChipText: {
+    fontSize: 10,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -262,10 +269,6 @@ const styles = StyleSheet.create({
   stockName: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-  },
-  badgesRow: {
-    flexDirection: "row",
-    gap: 6,
   },
   badge: {
     paddingHorizontal: 8,
