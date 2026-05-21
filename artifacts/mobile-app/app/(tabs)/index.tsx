@@ -81,7 +81,7 @@ function MarketClosedBanner({ status }: { status: MarketState }) {
       iconColor: "#F59E0B",
       bg: "#F59E0B",
       title: "Market Closed for Today",
-      body: "NSE & BSE have closed for the day. Tomorrow's fresh signals will be posted before 9:00 AM — market opens at 9:15 AM.",
+      body: "NSE & BSE have closed for the day. Tomorrow's fresh signals will be posted before 9:00 AM.",
       chip: "Signals by 9:00 AM Tomorrow",
     },
     weekend: {
@@ -89,7 +89,7 @@ function MarketClosedBanner({ status }: { status: MarketState }) {
       iconColor: "#F59E0B",
       bg: "#F59E0B",
       title: "Markets Closed — Weekend",
-      body: "Enjoy your weekend! Fresh signals for Monday will be posted before 9:00 AM — market opens at 9:15 AM.",
+      body: "Enjoy your weekend! Fresh signals for Monday will be posted before 9:00 AM.",
       chip: "Signals Monday by 9:00 AM",
     },
     "pre-market": {
@@ -97,8 +97,8 @@ function MarketClosedBanner({ status }: { status: MarketState }) {
       iconColor: "#10B981",
       bg: "#10B981",
       title: "Signals Drop Before 9:00 AM",
-      body: "Today's stock picks will be posted before 9:00 AM, ahead of market open at 9:15 AM. Check back soon!",
-      chip: "Market Opens 9:15 AM",
+      body: "Today's stock picks will be posted before 9:00 AM. Check back soon!",
+      chip: "Coming Soon",
     },
   }[status];
 
@@ -318,6 +318,23 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* ── Quote of the day ────────────────────────────────────── */}
+        {quote && (
+          <View style={[styles.quoteCard, { backgroundColor: colors.card, borderColor: colors.primary + "30" }]}>
+            <View style={styles.quoteHeader}>
+              <View style={[styles.quoteIconBox, { backgroundColor: colors.primary + "20" }]}>
+                <Feather name="message-circle" size={13} color={colors.primary} />
+              </View>
+              <Text style={[styles.quoteTag, { color: colors.primary }]}>Quote of the Day</Text>
+            </View>
+            <Text style={[styles.quoteOpenMark, { color: colors.primary }]}>"</Text>
+            <Text style={[styles.quoteText, { color: colors.foreground }]}>{quote.quote}</Text>
+            {quote.author ? (
+              <Text style={[styles.quoteAuthor, { color: colors.mutedForeground }]}>— {quote.author}</Text>
+            ) : null}
+          </View>
+        )}
+
         {/* ── Market closed alert ─────────────────────────────────── */}
         {!market.open && <MarketClosedBanner status={market.status} />}
 
@@ -358,23 +375,6 @@ export default function HomeScreen() {
             </View>
           </View>
         ) : null}
-
-        {/* ── Quote of the day ────────────────────────────────────── */}
-        {quote && (
-          <View style={[styles.quoteCard, { backgroundColor: colors.card, borderColor: colors.primary + "30" }]}>
-            <View style={styles.quoteHeader}>
-              <View style={[styles.quoteIconBox, { backgroundColor: colors.primary + "20" }]}>
-                <Feather name="message-circle" size={13} color={colors.primary} />
-              </View>
-              <Text style={[styles.quoteTag, { color: colors.primary }]}>Quote of the Day</Text>
-            </View>
-            <Text style={[styles.quoteOpenMark, { color: colors.primary }]}>"</Text>
-            <Text style={[styles.quoteText, { color: colors.foreground }]}>{quote.quote}</Text>
-            {quote.author ? (
-              <Text style={[styles.quoteAuthor, { color: colors.mutedForeground }]}>— {quote.author}</Text>
-            ) : null}
-          </View>
-        )}
 
         {/* ── Today's picks ───────────────────────────────────────── */}
         <View style={styles.section}>
