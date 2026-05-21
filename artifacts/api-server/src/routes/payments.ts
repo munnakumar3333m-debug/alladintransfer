@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, paymentsTable, usersTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, paymentsTable, usersTable, referralsTable } from "@workspace/db";
+import { eq, desc, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { z } from "zod";
 
@@ -58,6 +58,33 @@ router.post("/payments/verify", requireAuth, async (req, res): Promise<void> => 
     subscriptionType: "premium",
     premiumExpiryDate,
   }).where(eq(usersTable.id, user.id));
+
+  // Reward referrer if this is the first payment from a referred user
+  if (user.referredBy) {
+    const [pendingReferral] = await db.select().from(referralsTable).where(
+      and(
+        eq(referralsTable.referrerId, user.referredBy),
+        eq(referralsTable.referredId, user.id),
+        eq(referralsTable.status, "pending"),
+      )
+    );
+    if (pendingReferral) {
+      const [referrer] = await db.select().from(usersTable).where(eq(usersTable.id, user.referredBy));
+      if (referrer) {
+        const refBase = referrer.premiumExpiryDate && referrer.premiumExpiryDate > now ? referrer.premiumExpiryDate : now;
+        const refExpiry = new Date(refBase.getTime() + pendingReferral.rewardDays * 24 * 60 * 60 * 1000);
+        const refType = referrer.subscriptionType === "premium" ? "premium" : "premium";
+        await db.update(usersTable).set({
+          subscriptionType: refType,
+          premiumExpiryDate: refExpiry,
+        }).where(eq(usersTable.id, referrer.id));
+        await db.update(referralsTable).set({
+          status: "rewarded",
+          rewardedAt: now,
+        }).where(eq(referralsTable.id, pendingReferral.id));
+      }
+    }
+  }
 
   res.json(VerifyPaymentResponse.parse({
     subscriptionType: "premium",

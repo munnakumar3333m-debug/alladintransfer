@@ -6,7 +6,7 @@ export const referralsTable = pgTable("referrals", {
   referrerId: integer("referrer_id").notNull().references(() => usersTable.id),
   referredId: integer("referred_id").notNull().references(() => usersTable.id),
   status: text("status").notNull().default("pending"), // pending | rewarded
-  rewardDays: integer("reward_days").notNull().default(30),
+  rewardDays: integer("reward_days").notNull().default(7),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   rewardedAt: timestamp("rewarded_at", { withTimezone: true }),
 });

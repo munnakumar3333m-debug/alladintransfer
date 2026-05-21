@@ -3,12 +3,14 @@ import {
   useGetMe,
   useGetSubscriptionStatus,
 } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   Alert,
   Platform,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,20 +21,58 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
+interface ReferralStats {
+  code: string;
+  totalReferrals: number;
+  rewardedReferrals: number;
+  pendingReferrals: number;
+  totalDaysEarned: number;
+}
+
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
 
   const { data: user, isError: userError } = useGetMe();
   const { data: sub, isError: subError } = useGetSubscriptionStatus();
+
+  const { data: referral } = useQuery<ReferralStats>({
+    queryKey: ["referral-code"],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await fetch("/api/referrals/my-code", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch referral code");
+      return res.json();
+    },
+  });
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       { text: "Sign Out", style: "destructive", onPress: logout },
     ]);
+  };
+
+  const handleCopyCode = () => {
+    if (!referral?.code) return;
+    if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(referral.code).catch(() => {});
+    }
+    Alert.alert("Copied!", `Referral code "${referral.code}" copied to clipboard.`);
+  };
+
+  const handleShareCode = async () => {
+    if (!referral?.code) return;
+    try {
+      await Share.share({
+        message: `Join Alladin — India's best stock picks app! Use my referral code ${referral.code} when you sign up and I'll get 7 free days of premium. Download now: https://alladin.app`,
+        title: "Join Alladin",
+      });
+    } catch {}
   };
 
   const isPremium = sub?.subscriptionType === "premium";
@@ -94,6 +134,67 @@ export default function ProfileScreen() {
             <Text style={[styles.upgradeBtnText, { color: colors.primaryForeground }]}>{isExpired ? "Renew Subscription" : "Upgrade to Premium"}</Text>
           </TouchableOpacity>
         )}
+      </View>
+
+      {/* ── Referral Card ───────────────────────────────────────── */}
+      <View style={[styles.referralCard, { backgroundColor: colors.card, borderColor: colors.primary + "55" }]}>
+        <View style={styles.referralHeader}>
+          <View style={[styles.referralIconBox, { backgroundColor: colors.primary + "22" }]}>
+            <Feather name="gift" size={18} color={colors.primary} />
+          </View>
+          <View style={styles.referralHeaderText}>
+            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer {"&"} Earn</Text>
+            <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>
+              Get 7 free days for every friend who subscribes
+            </Text>
+          </View>
+        </View>
+
+        <View style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.codeLabel, { color: colors.mutedForeground }]}>Your referral code</Text>
+          <Text style={[styles.codeText, { color: colors.primary }]}>{referral?.code ?? "Loading..."}</Text>
+        </View>
+
+        <View style={styles.codeActions}>
+          <TouchableOpacity
+            style={[styles.codeBtn, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "44" }]}
+            onPress={handleCopyCode}
+            activeOpacity={0.75}
+          >
+            <Feather name="copy" size={14} color={colors.primary} />
+            <Text style={[styles.codeBtnText, { color: colors.primary }]}>Copy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.codeBtn, styles.codeBtnShare, { backgroundColor: colors.primary }]}
+            onPress={handleShareCode}
+            activeOpacity={0.8}
+          >
+            <Feather name="share-2" size={14} color={colors.primaryForeground} />
+            <Text style={[styles.codeBtnText, { color: colors.primaryForeground }]}>Share</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.foreground }]}>{referral?.totalReferrals ?? 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Referred</Text>
+          </View>
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.positive }]}>{referral?.rewardedReferrals ?? 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Rewarded</Text>
+          </View>
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.primary }]}>{referral?.totalDaysEarned ?? 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Days Earned</Text>
+          </View>
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.warning }]}>{referral?.pendingReferrals ?? 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Pending</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -210,6 +311,102 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_700Bold",
   },
+  // ── Referral ──────────────────────────────────────────────────
+  referralCard: {
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.5,
+    gap: 14,
+  },
+  referralHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  referralIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  referralHeaderText: {
+    flex: 1,
+    gap: 3,
+  },
+  referralTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+  },
+  referralSubtitle: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  codeBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 3,
+    alignItems: "center",
+  },
+  codeLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  codeText: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 3,
+  },
+  codeActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  codeBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    borderRadius: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  codeBtnShare: {
+    borderWidth: 0,
+  },
+  codeBtnText: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+  },
+  statsRow: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    paddingTop: 14,
+    gap: 0,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 3,
+  },
+  statValue: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  statLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },
+  statDivider: {
+    width: 1,
+    marginVertical: 4,
+  },
+  // ── Account ───────────────────────────────────────────────────
   section: {
     gap: 10,
   },

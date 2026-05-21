@@ -90,10 +90,10 @@ router.post("/referrals/apply", requireAuth, async (req, res): Promise<void> => 
     referrerId: referrer.id,
     referredId: req.user!.id,
     status: "pending",
-    rewardDays: 30,
+    rewardDays: 7,
   });
 
-  res.json({ message: "Referral code applied! Your friend will earn 30 free days when you subscribe." });
+  res.json({ message: "Referral code applied! Your friend will earn 7 free days when you subscribe." });
 });
 
 router.get("/admin/referrals", requireAuth, requireAdmin, async (req, res): Promise<void> => {
