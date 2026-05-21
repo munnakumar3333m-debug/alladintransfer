@@ -1,9 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import { useGetSubscriptionStatus } from "@workspace/api-client-react";
+import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   Platform,
@@ -22,41 +23,71 @@ const UPI_AMOUNT = 800;
 const MERCHANT_NAME = "Alladin";
 const UPI_URL = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${UPI_AMOUNT}&cu=INR`;
 
+const FEATURES = [
+  { icon: "trending-up" as const, text: "Daily BUY / SELL stock picks" },
+  { icon: "bar-chart-2" as const, text: "Live P&L tracking on every pick" },
+  { icon: "activity" as const, text: "Advanced portfolio analytics" },
+  { icon: "bell" as const, text: "Real-time push alerts" },
+  { icon: "award" as const, text: "Priority customer support" },
+];
+
+const STEPS = [
+  { n: "1", label: 'Tap "Pay via UPI"', desc: "Opens your UPI app with details pre-filled" },
+  { n: "2", label: "Complete payment", desc: `Pay \u20B9${UPI_AMOUNT} and return to Alladin` },
+  { n: "3", label: "Tap \"I've Paid\"", desc: "Notify us so we can verify instantly" },
+  { n: "4", label: "Get confirmed", desc: "Admin approves and your 30 days begin" },
+];
+
 export default function SubscribeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { data: sub } = useGetSubscriptionStatus();
+  const [copied, setCopied] = useState(false);
 
-  const expiryText = useMemo(() => {
-    if (sub?.type === "premium") return "Your premium is active. Renew to extend by 30 days.";
-    if (sub?.type === "trial") return "Your trial is active. Pay now to continue without interruption.";
-    return "Your subscription has expired. Renew to regain access.";
+  const { badge, expiryText } = useMemo(() => {
+    if (sub?.type === "premium") return {
+      badge: "ACTIVE",
+      expiryText: "Your premium is active. Renew now to stack another 30 days.",
+    };
+    if (sub?.type === "trial") return {
+      badge: "TRIAL",
+      expiryText: "Upgrade before your trial ends to enjoy uninterrupted access.",
+    };
+    return {
+      badge: "EXPIRED",
+      expiryText: "Your subscription has expired. Renew to regain full access.",
+    };
   }, [sub?.type]);
+
+  const badgeColor = badge === "ACTIVE" ? colors.positive : badge === "TRIAL" ? colors.primary : colors.negative;
 
   const handleCopy = async () => {
     try {
       if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(UPI_ID);
+      } else {
+        await Clipboard.setStringAsync(UPI_ID);
       }
     } catch {}
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("Copied", "UPI ID copied to clipboard");
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handlePay = async () => {
     try {
       await Linking.openURL(UPI_URL);
     } catch {
-      Alert.alert("Error", "No UPI app found on this device.");
+      Alert.alert("No UPI App Found", "Please use the UPI ID below to pay manually from any UPI app.");
     }
   };
 
   const handlePaid = () => {
     Alert.alert(
-      "Payment submitted",
-      "The payment will be verified by the admin and your subscription will be extended by 30 days after approval.",
-      [{ text: "OK" }]
+      "✅ Payment Submitted",
+      "Our team will verify your payment shortly. Your subscription will be extended by 30 days once approved — usually within a few hours.",
+      [{ text: "Got it", style: "default" }]
     );
   };
 
@@ -72,64 +103,149 @@ export default function SubscribeScreen() {
           },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="x" size={22} color={colors.foreground} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}>
+          <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.foreground }]}>Subscription Renewal</Text>
-        <View style={styles.backBtn} />
+        <Text style={[styles.navTitle, { color: colors.foreground }]}>Premium Plan</Text>
+        <View style={styles.navBtn} />
       </View>
 
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 24 },
+          { paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 32 },
         ]}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heroSection}>
-          <View style={[styles.heroIcon, { backgroundColor: colors.primary }]}>
-            <Feather name="credit-card" size={34} color={colors.primaryForeground} />
+        {/* ─── Hero ─────────────────────────────────────────────── */}
+        <View style={[styles.heroCard, { backgroundColor: colors.primary }]}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroLeft}>
+              <View style={[styles.statusPill, { backgroundColor: "#FFFFFF22" }]}>
+                <View style={[styles.statusDot, { backgroundColor: badgeColor === colors.primary ? "#FFFFFF" : badgeColor }]} />
+                <Text style={styles.statusPillText}>{badge}</Text>
+              </View>
+              <Text style={styles.heroTitle}>Alladin Premium</Text>
+              <Text style={styles.heroTagline}>Manufacturing Millionaires</Text>
+            </View>
+            <View style={styles.priceBlock}>
+              <Text style={styles.priceCurrency}>₹</Text>
+              <Text style={styles.priceAmount}>800</Text>
+              <Text style={styles.pricePeriod}>/mo</Text>
+            </View>
           </View>
-          <Text style={[styles.heroTitle, { color: colors.foreground }]}>UPI Renewal</Text>
-          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>{expiryText}</Text>
+          <Text style={styles.heroCaption}>{expiryText}</Text>
         </View>
 
-        <View style={[styles.priceCard, { backgroundColor: colors.card, borderColor: colors.primary + "66" }]}>
-          <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>Subscription price</Text>
-          <View style={styles.priceRow}>
-            <Text style={[styles.currency, { color: colors.primary }]}>₹</Text>
-            <Text style={[styles.price, { color: colors.foreground }]}>800</Text>
-            <Text style={[styles.period, { color: colors.mutedForeground }]}>/ 30 days</Text>
-          </View>
-          <Text style={[styles.priceSub, { color: colors.mutedForeground }]}>Only UPI supported · Instant renewal after approval</Text>
+        {/* ─── Features ─────────────────────────────────────────── */}
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.cardHeading, { color: colors.foreground }]}>What's included</Text>
+          {FEATURES.map((f) => (
+            <View key={f.text} style={styles.featureRow}>
+              <View style={[styles.featureIconBox, { backgroundColor: colors.primary + "20" }]}>
+                <Feather name={f.icon} size={15} color={colors.primary} />
+              </View>
+              <Text style={[styles.featureText, { color: colors.foreground }]}>{f.text}</Text>
+            </View>
+          ))}
         </View>
 
+        {/* ─── CTA Buttons ──────────────────────────────────────── */}
         <TouchableOpacity
-          style={[styles.payBtn, { backgroundColor: colors.primary }]}
+          style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
           onPress={handlePay}
           activeOpacity={0.85}
         >
           <Feather name="smartphone" size={18} color={colors.primaryForeground} />
-          <Text style={[styles.payBtnText, { color: colors.primaryForeground }]}>Make Payment</Text>
+          <Text style={[styles.primaryBtnText, { color: colors.primaryForeground }]}>Pay ₹800 via UPI</Text>
+          <Feather name="arrow-right" size={16} color={colors.primaryForeground} style={{ opacity: 0.8 }} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.paidBtn, { borderColor: colors.border }]} onPress={handlePaid} activeOpacity={0.85}>
-          <Feather name="check-circle" size={18} color={colors.foreground} />
-          <Text style={[styles.paidBtnText, { color: colors.foreground }]}>I have paid</Text>
+        <TouchableOpacity
+          style={[styles.secondaryBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+          onPress={handlePaid}
+          activeOpacity={0.85}
+        >
+          <Feather name="check-circle" size={17} color={colors.positive} />
+          <Text style={[styles.secondaryBtnText, { color: colors.foreground }]}>I've already paid</Text>
         </TouchableOpacity>
 
-        <View style={[styles.upiCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Pay using UPI</Text>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Merchant Name</Text>
-          <Text style={[styles.upiValue, { color: colors.foreground }]}>{MERCHANT_NAME}</Text>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, marginTop: 10 }]}>UPI ID</Text>
-          <View style={styles.upiRow}>
-            <Text style={[styles.upiValue, { color: colors.foreground }]}>{UPI_ID}</Text>
-            <TouchableOpacity style={[styles.copyBtn, { borderColor: colors.primary + "55" }]} onPress={handleCopy}>
-              <Feather name="copy" size={14} color={colors.primary} />
-              <Text style={[styles.copyBtnText, { color: colors.primary }]}>Copy UPI ID</Text>
+        {/* ─── UPI Details ──────────────────────────────────────── */}
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.cardHeading, { color: colors.foreground }]}>Manual UPI Payment</Text>
+          <Text style={[styles.cardCaption, { color: colors.mutedForeground }]}>
+            Open any UPI app and send to the details below.
+          </Text>
+
+          <View style={[styles.upiDetailRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={styles.upiDetailLeft}>
+              <Text style={[styles.upiDetailLabel, { color: colors.mutedForeground }]}>Merchant</Text>
+              <Text style={[styles.upiDetailValue, { color: colors.foreground }]}>{MERCHANT_NAME}</Text>
+            </View>
+            <Feather name="user" size={16} color={colors.mutedForeground} />
+          </View>
+
+          <View style={[styles.upiDetailRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={styles.upiDetailLeft}>
+              <Text style={[styles.upiDetailLabel, { color: colors.mutedForeground }]}>UPI ID</Text>
+              <Text style={[styles.upiDetailValue, { color: colors.foreground }]}>{UPI_ID}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.copyBtn, { backgroundColor: copied ? colors.positive + "20" : colors.primary + "18", borderColor: copied ? colors.positive + "55" : colors.primary + "44" }]}
+              onPress={handleCopy}
+              activeOpacity={0.75}
+            >
+              <Feather name={copied ? "check" : "copy"} size={13} color={copied ? colors.positive : colors.primary} />
+              <Text style={[styles.copyBtnText, { color: copied ? colors.positive : colors.primary }]}>
+                {copied ? "Copied!" : "Copy"}
+              </Text>
             </TouchableOpacity>
           </View>
 
+          <View style={[styles.upiDetailRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={styles.upiDetailLeft}>
+              <Text style={[styles.upiDetailLabel, { color: colors.mutedForeground }]}>Amount</Text>
+              <Text style={[styles.upiDetailValue, { color: colors.foreground }]}>₹{UPI_AMOUNT}.00</Text>
+            </View>
+            <Feather name="tag" size={16} color={colors.mutedForeground} />
+          </View>
+        </View>
+
+        {/* ─── How it works ─────────────────────────────────────── */}
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.cardHeading, { color: colors.foreground }]}>How it works</Text>
+          {STEPS.map((s, i) => (
+            <View key={s.n} style={styles.stepRow}>
+              <View style={[styles.stepNum, { backgroundColor: colors.primary }]}>
+                <Text style={styles.stepNumText}>{s.n}</Text>
+              </View>
+              <View style={styles.stepBody}>
+                <Text style={[styles.stepLabel, { color: colors.foreground }]}>{s.label}</Text>
+                <Text style={[styles.stepDesc, { color: colors.mutedForeground }]}>{s.desc}</Text>
+              </View>
+              {i < STEPS.length - 1 && (
+                <View style={[styles.stepConnector, { backgroundColor: colors.border }]} />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* ─── Trust footer ─────────────────────────────────────── */}
+        <View style={styles.trustRow}>
+          <View style={styles.trustItem}>
+            <Feather name="lock" size={13} color={colors.mutedForeground} />
+            <Text style={[styles.trustText, { color: colors.mutedForeground }]}>Secure UPI</Text>
+          </View>
+          <View style={[styles.trustDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.trustItem}>
+            <Feather name="clock" size={13} color={colors.mutedForeground} />
+            <Text style={[styles.trustText, { color: colors.mutedForeground }]}>Quick approval</Text>
+          </View>
+          <View style={[styles.trustDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.trustItem}>
+            <Feather name="shield" size={13} color={colors.mutedForeground} />
+            <Text style={[styles.trustText, { color: colors.mutedForeground }]}>No auto-debit</Text>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -138,6 +254,7 @@ export default function SubscribeScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+
   navBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -145,7 +262,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
-  backBtn: {
+  navBtn: {
     width: 44,
     height: 44,
     alignItems: "center",
@@ -158,88 +275,147 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     textAlign: "center",
   },
+
   content: {
-    padding: 24,
-    gap: 18,
+    padding: 20,
+    gap: 14,
   },
-  heroSection: {
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 8,
-  },
-  heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-  },
-  heroSub: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    paddingHorizontal: 16,
-  },
-  priceCard: {
-    borderRadius: 18,
+
+  heroCard: {
+    borderRadius: 22,
     padding: 22,
-    borderWidth: 2,
-    alignItems: "center",
-    gap: 6,
+    gap: 14,
   },
-  priceLabel: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  priceRow: {
+  heroTop: {
     flexDirection: "row",
     alignItems: "flex-start",
+    justifyContent: "space-between",
   },
-  currency: {
+  heroLeft: {
+    flex: 1,
+    gap: 4,
+  },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginBottom: 4,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+    letterSpacing: 1,
+  },
+  heroTitle: {
     fontSize: 22,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginTop: 6,
+    color: "#FFFFFF",
   },
-  price: {
-    fontSize: 52,
+  heroTagline: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: "#FFFFFFAA",
+    letterSpacing: 0.5,
+  },
+  priceBlock: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  priceCurrency: {
+    fontSize: 18,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    lineHeight: 58,
+    color: "#FFFFFF",
+    marginTop: 6,
   },
-  period: {
-    fontSize: 16,
+  priceAmount: {
+    fontSize: 48,
+    fontWeight: "900",
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+    lineHeight: 54,
+  },
+  pricePeriod: {
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
+    color: "#FFFFFFBB",
     alignSelf: "flex-end",
-    marginBottom: 6,
-    marginLeft: 4,
+    marginBottom: 8,
+    marginLeft: 2,
   },
-  priceSub: {
+  heroCaption: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    textAlign: "center",
+    color: "#FFFFFFCC",
+    lineHeight: 19,
   },
-  payBtn: {
+
+  card: {
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    gap: 10,
+  },
+  cardHeading: {
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    marginBottom: 2,
+  },
+  cardCaption: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 19,
+    marginTop: -4,
+    marginBottom: 2,
+  },
+
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  featureIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  featureText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    flex: 1,
+  },
+
+  primaryBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    paddingVertical: 16,
+    paddingVertical: 17,
     borderRadius: 16,
   },
-  payBtnText: {
+  primaryBtnText: {
     fontSize: 16,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
+    flex: 1,
+    textAlign: "center",
   },
-  paidBtn: {
+  secondaryBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -248,44 +424,41 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
   },
-  paidBtnText: {
+  secondaryBtnText: {
     fontSize: 15,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
   },
-  upiCard: {
-    borderRadius: 18,
-    padding: 18,
+
+  upiDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    gap: 8,
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-    marginBottom: 4,
+  upiDetailLeft: {
+    gap: 2,
   },
-  sectionLabel: {
-    fontSize: 12,
+  upiDetailLabel: {
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
     textTransform: "uppercase",
     letterSpacing: 0.7,
   },
-  upiValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-  },
-  upiRow: {
-    gap: 10,
+  upiDetailValue: {
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   copyBtn: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
+    gap: 5,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 999,
     borderWidth: 1,
   },
@@ -293,5 +466,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
+  },
+
+  stepRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 14,
+    position: "relative",
+  },
+  stepNum: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  stepNumText: {
+    fontSize: 12,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+  },
+  stepBody: {
+    flex: 1,
+    paddingBottom: 18,
+    gap: 2,
+  },
+  stepLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  stepDesc: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+  },
+  stepConnector: {
+    position: "absolute",
+    left: 13,
+    top: 28,
+    width: 2,
+    height: "100%",
+    zIndex: 0,
+  },
+
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  trustItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  trustText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  trustDivider: {
+    width: 1,
+    height: 14,
+    opacity: 0.5,
   },
 });
