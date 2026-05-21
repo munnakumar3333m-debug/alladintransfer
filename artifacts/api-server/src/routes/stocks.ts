@@ -94,11 +94,19 @@ async function yahooChart(
   const result = json.chart.result?.[0];
   if (!result) throw new Error("No Yahoo data");
 
-  const pts: { time: number; close: number }[] = [];
-  const closes = result.indicators.quote[0].close;
+  const pts: { time: number; open: number; high: number; low: number; close: number }[] = [];
+  const q = result.indicators.quote[0];
   for (let i = 0; i < result.timestamp.length; i++) {
-    const c = closes[i];
-    if (c != null) pts.push({ time: result.timestamp[i] * 1000, close: Number(c.toFixed(2)) });
+    const o = q.open?.[i], h = q.high?.[i], l = q.low?.[i], c = q.close?.[i];
+    if (o != null && h != null && l != null && c != null) {
+      pts.push({
+        time: result.timestamp[i] * 1000,
+        open: Number(o.toFixed(2)),
+        high: Number(h.toFixed(2)),
+        low: Number(l.toFixed(2)),
+        close: Number(c.toFixed(2)),
+      });
+    }
   }
   return pts;
 }
@@ -125,8 +133,11 @@ router.get("/stocks/chart", async (req, res) => {
       const { interval, fromdate, todate } = rangeParams(range);
       const candles = await getCandleData(token, interval, fromdate, todate);
 
-      const points = candles.map(([datetime, , , , close]) => ({
+      const points = candles.map(([datetime, open, high, low, close]) => ({
         time: new Date(datetime).getTime(),
+        open: Number(Number(open).toFixed(2)),
+        high: Number(Number(high).toFixed(2)),
+        low: Number(Number(low).toFixed(2)),
         close: Number(Number(close).toFixed(2)),
       }));
 
