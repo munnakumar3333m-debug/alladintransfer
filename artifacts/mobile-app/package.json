@@ -56,6 +56,8 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "linear-gradient": "^1.0.6",
+    "react-native-gifted-charts": "^1.4.77",
     "react-native-webview": "^13.16.1"
   }
 }
