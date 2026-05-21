@@ -17,7 +17,13 @@ function base32Decode(s: string): Buffer {
 }
 
 function generateTOTP(secret: string, period = 30, digits = 6): string {
-  const key = base32Decode(secret);
+  // Support both UUID/hex format (e.g. "cacc1130-1404-4fcf-b428-eb79e2af95ce")
+  // and standard base32 format (e.g. "JBSWY3DPEHPK3PXP")
+  const hexOnly = secret.replace(/-/g, "");
+  const key =
+    /^[0-9a-fA-F]{32}$/.test(hexOnly)
+      ? Buffer.from(hexOnly, "hex")
+      : base32Decode(secret);
   const counter = Math.floor(Date.now() / 1000 / period);
   const buf = Buffer.alloc(8);
   buf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
