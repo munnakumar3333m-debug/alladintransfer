@@ -130,23 +130,6 @@ export default function SubscribeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.fakeQrWrap, { backgroundColor: colors.background, borderColor: colors.border }]}>
-            <View style={styles.fakeQrGrid}>
-              {Array.from({ length: 64 }).map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.fakeQrCell,
-                    {
-                      backgroundColor: i % 3 === 0 || i % 5 === 0 ? colors.foreground : colors.background,
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-            <Text style={[styles.fakeQrText, { color: colors.foreground }]}>Scan to pay</Text>
-          </View>
-          <Text style={[styles.qrCaption, { color: colors.mutedForeground }]}>Scan QR in any UPI app</Text>
         </View>
       </ScrollView>
     </View>
@@ -310,37 +293,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-  },
-  fakeQrWrap: {
-    alignSelf: "center",
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginTop: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fakeQrGrid: {
-    width: 170,
-    height: 170,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    borderWidth: 8,
-    borderColor: "#fff",
-  },
-  fakeQrCell: {
-    width: 17,
-    height: 17,
-  },
-  fakeQrText: {
-    position: "absolute",
-    fontSize: 16,
-    fontWeight: "800",
-    fontFamily: "Inter_700Bold",
-  },
-  qrCaption: {
-    textAlign: "center",
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
   },
 });
