@@ -44,26 +44,26 @@ function getMarketStatus(): { open: boolean; label: string; next: string; status
   const m = ist.getMinutes();
   const mins = h * 60 + m;
   const isWeekend = day === 0 || day === 6;
-  const isOpen = !isWeekend && mins >= 540 && mins < 930; // 9:00 – 15:30
+  const isOpen = !isWeekend && mins >= 555 && mins < 930; // 9:15 – 15:30
 
   let status: MarketState = "open";
   if (isWeekend) status = "weekend";
-  else if (!isOpen && mins < 540) status = "pre-market";
+  else if (!isOpen && mins < 555) status = "pre-market";
   else if (!isOpen) status = "closed";
 
   const label = isWeekend
     ? "Weekend"
     : isOpen
       ? "Market Open"
-      : mins < 540
+      : mins < 555
         ? "Pre-Market"
         : "Market Closed";
   const next = isOpen
     ? "Closes 3:30 PM"
     : isWeekend
       ? "Opens Monday"
-      : mins < 540
-        ? "Opens 9:00 AM"
+      : mins < 555
+        ? "Signals at 9:00 AM"
         : "Opens Tomorrow";
   return { open: isOpen, label, next, status };
 }
@@ -81,24 +81,24 @@ function MarketClosedBanner({ status }: { status: MarketState }) {
       iconColor: "#F59E0B",
       bg: "#F59E0B",
       title: "Market Closed for Today",
-      body: "NSE & BSE have closed for the day. Come back before 9:00 AM tomorrow for fresh new trades.",
-      chip: "Opens 9:00 AM Tomorrow",
+      body: "NSE & BSE have closed for the day. Tomorrow's fresh signals will be posted before 9:00 AM — market opens at 9:15 AM.",
+      chip: "Signals by 9:00 AM Tomorrow",
     },
     weekend: {
       icon: "moon" as const,
       iconColor: "#F59E0B",
       bg: "#F59E0B",
       title: "Markets Closed — Weekend",
-      body: "Enjoy your weekend! Fresh stock picks will be ready when NSE reopens on Monday at 9:00 AM.",
-      chip: "Opens Monday 9:00 AM",
+      body: "Enjoy your weekend! Fresh signals for Monday will be posted before 9:00 AM — market opens at 9:15 AM.",
+      chip: "Signals Monday by 9:00 AM",
     },
     "pre-market": {
       icon: "clock" as const,
       iconColor: "#10B981",
       bg: "#10B981",
-      title: "Pre-Market Hours",
-      body: "Today's stock picks are being prepared. They'll be live when the market opens at 9:00 AM.",
-      chip: "Opens 9:00 AM Today",
+      title: "Signals Drop Before 9:00 AM",
+      body: "Today's stock picks will be posted before 9:00 AM, ahead of market open at 9:15 AM. Check back soon!",
+      chip: "Market Opens 9:15 AM",
     },
   }[status];
 
