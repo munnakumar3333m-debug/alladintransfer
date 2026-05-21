@@ -156,7 +156,7 @@ export default function ProfileScreen() {
             <Feather name="gift" size={18} color={colors.primary} />
           </View>
           <View style={styles.referralHeaderText}>
-            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer {"&"} Earn</Text>
+            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer {"&"} </Text>
             <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>
               Get 7 free days for every friend who subscribes
             </Text>
