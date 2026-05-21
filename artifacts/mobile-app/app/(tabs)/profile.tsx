@@ -156,7 +156,7 @@ export default function ProfileScreen() {
             <Feather name="gift" size={18} color={colors.primary} />
           </View>
           <View style={styles.referralHeaderText}>
-            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer now for free Daily TIPS</Text>
+            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer now for free TIPS</Text>
             <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>
               Get +7 free days the moment a friend joins — no payment needed
             </Text>
