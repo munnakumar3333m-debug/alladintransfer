@@ -17,6 +17,7 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { StockChart } from "@/components/StockChart";
 
 const RISK_COLOR: Record<string, string> = {
   low: "#06B6D4",
@@ -96,6 +97,8 @@ export default function RecommendationDetailScreen() {
             <InfoRow label="Risk Level" value={rec.riskLevel?.toUpperCase() ?? "-"} valueColor={RISK_COLOR[rec.riskLevel ?? "medium"]} colors={colors} />
             <InfoRow label="Trade Type" value={rec.tradeType.toUpperCase()} colors={colors} />
           </View>
+
+          <StockChart symbol={rec.nseSymbol} />
 
           {screenshots.length > 0 && (
             <View style={[styles.screenshotCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
