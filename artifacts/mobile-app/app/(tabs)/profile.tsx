@@ -82,7 +82,7 @@ export default function ProfileScreen() {
     if (!referral?.code) return;
     try {
       await Share.share({
-        message: `Join Alladin — India's best stock picks app! Use my referral code ${referral.code} when you sign up and I'll get 7 free days of premium. Download now: https://alladin.app`,
+        message: `Join Alladin — India's best daily stock picks! 🚀\n\nUse my referral code ${referral.code} when you sign up and I instantly get 7 extra free days — no payment needed from you!\n\nDownload: https://alladin.app`,
         title: "Join Alladin",
       });
     } catch {}
@@ -156,10 +156,25 @@ export default function ProfileScreen() {
             <Feather name="gift" size={18} color={colors.primary} />
           </View>
           <View style={styles.referralHeaderText}>
-            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer {"&"} </Text>
+            <Text style={[styles.referralTitle, { color: colors.foreground }]}>Refer & Earn</Text>
             <Text style={[styles.referralSubtitle, { color: colors.mutedForeground }]}>
-              Get 7 free days for every friend who subscribes
+              Get +7 free days the moment a friend joins — no payment needed
             </Text>
+          </View>
+        </View>
+
+        <View style={[styles.howItWorks, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "30" }]}>
+          <View style={styles.howRow}>
+            <View style={[styles.howStep, { backgroundColor: colors.primary }]}><Text style={styles.howStepNum}>1</Text></View>
+            <Text style={[styles.howText, { color: colors.mutedForeground }]}>Share your code with a friend</Text>
+          </View>
+          <View style={styles.howRow}>
+            <View style={[styles.howStep, { backgroundColor: colors.primary }]}><Text style={styles.howStepNum}>2</Text></View>
+            <Text style={[styles.howText, { color: colors.mutedForeground }]}>Friend signs up using your code</Text>
+          </View>
+          <View style={styles.howRow}>
+            <View style={[styles.howStep, { backgroundColor: "#10B981" }]}><Text style={styles.howStepNum}>✓</Text></View>
+            <Text style={[styles.howText, { color: "#10B981" }]}>You instantly get 7 extra free days</Text>
           </View>
         </View>
 
@@ -190,22 +205,17 @@ export default function ProfileScreen() {
         <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: colors.foreground }]}>{referral?.totalReferrals ?? 0}</Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Referred</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Friends{"\n"}Joined</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: colors.positive }]}>{referral?.rewardedReferrals ?? 0}</Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Rewarded</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Rewards{"\n"}Given</Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{referral?.totalDaysEarned ?? 0}</Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Days Earned</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.warning }]}>{referral?.pendingReferrals ?? 0}</Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Pending</Text>
+            <Text style={[styles.statValue, { color: colors.primary }]}>+{referral?.totalDaysEarned ?? 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Days{"\n"}Earned</Text>
           </View>
         </View>
       </View>
@@ -351,6 +361,34 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   // ── Referral ──────────────────────────────────────────────────
+  howItWorks: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+  },
+  howRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  howStep: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  howStepNum: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
+  howText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    flex: 1,
+  },
   referralCard: {
     borderRadius: 18,
     padding: 16,
