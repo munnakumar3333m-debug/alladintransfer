@@ -28,7 +28,7 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    mutate({ data: { phone, password } });
+    mutate({ data: { identifier: phone, password } });
   };
 
   return (
