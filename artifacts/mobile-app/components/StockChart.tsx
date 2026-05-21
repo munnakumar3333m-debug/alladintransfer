@@ -22,57 +22,42 @@ interface StockChartProps {
   symbol: string;
 }
 
-function buildHtml(symbol: string, interval: string, isDark: boolean): string {
-  const tvSymbol = symbol.includes(":") ? symbol : `NSE:${symbol}`;
+function chartUrl(symbol: string, interval: string, isDark: boolean): string {
+  const tvSymbol = encodeURIComponent(
+    symbol.includes(":") ? symbol : `NSE:${symbol}`
+  );
   const theme = isDark ? "dark" : "light";
-  const bg = isDark ? "#0D1117" : "#FFFFFF";
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; background: ${bg}; }
-  #tv { width: 100%; height: 100%; }
-</style>
-</head>
-<body>
-<div id="tv"></div>
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-<script type="text/javascript">
-new TradingView.widget({
-  autosize: true,
-  symbol: "${tvSymbol}",
-  interval: "${interval}",
-  timezone: "Asia/Kolkata",
-  theme: "${theme}",
-  style: "1",
-  locale: "en",
-  toolbar_bg: "${bg}",
-  enable_publishing: false,
-  hide_top_toolbar: false,
-  hide_legend: false,
-  save_image: false,
-  container_id: "tv",
-  hide_side_toolbar: true,
-  allow_symbol_change: false,
-  studies: ["RSI@tv-studiod-script", "MACD@tv-studiod-script"],
-});
-</script>
-</body>
-</html>`;
+  return (
+    `https://www.tradingview.com/widgetembed/` +
+    `?symbol=${tvSymbol}` +
+    `&interval=${encodeURIComponent(interval)}` +
+    `&theme=${theme}` +
+    `&style=1` +
+    `&timezone=Asia%2FKolkata` +
+    `&locale=en` +
+    `&hide_side_toolbar=1` +
+    `&allow_symbol_change=0` +
+    `&save_image=0` +
+    `&studies=RSI%40tv-basicstudies`
+  );
 }
 
 export function StockChart({ symbol }: StockChartProps) {
   const colors = useColors();
   const [interval, setInterval] = useState("D");
   const [loading, setLoading] = useState(true);
-  const isDark = colors.background === "#0D1117" || colors.background.toLowerCase() === "#0d1117";
+  const isDark =
+    colors.background.toLowerCase() === "#0d1117" ||
+    colors.background === "#0D1117";
 
   if (Platform.OS === "web") {
     return (
-      <View style={[styles.webFallback, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.webFallback,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <Text style={[styles.webFallbackText, { color: colors.mutedForeground }]}>
           Live chart available on the mobile app.
         </Text>
@@ -80,27 +65,44 @@ export function StockChart({ symbol }: StockChartProps) {
     );
   }
 
+  const url = chartUrl(symbol, interval, isDark);
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Live Chart</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>
+          Live Chart · {symbol}
+        </Text>
         <View style={styles.intervals}>
           {INTERVALS.map((iv) => (
             <TouchableOpacity
               key={iv.value}
-              onPress={() => { setInterval(iv.value); setLoading(true); }}
+              onPress={() => {
+                setInterval(iv.value);
+                setLoading(true);
+              }}
               style={[
                 styles.ivBtn,
                 {
-                  backgroundColor: interval === iv.value ? colors.primary : colors.card,
-                  borderColor: interval === iv.value ? colors.primary : colors.border,
+                  backgroundColor:
+                    interval === iv.value ? colors.primary : "transparent",
+                  borderColor:
+                    interval === iv.value ? colors.primary : colors.border,
                 },
               ]}
             >
               <Text
                 style={[
                   styles.ivText,
-                  { color: interval === iv.value ? "#fff" : colors.mutedForeground },
+                  {
+                    color:
+                      interval === iv.value ? "#fff" : colors.mutedForeground,
+                  },
                 ]}
               >
                 {iv.label}
@@ -112,16 +114,23 @@ export function StockChart({ symbol }: StockChartProps) {
 
       <View style={styles.chartWrap}>
         {loading && (
-          <View style={[styles.loadingOverlay, { backgroundColor: colors.card }]}>
+          <View
+            style={[styles.loadingOverlay, { backgroundColor: colors.card }]}
+          >
             <ActivityIndicator color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
-              Loading chart…
+            <Text
+              style={[
+                styles.loadingText,
+                { color: colors.mutedForeground },
+              ]}
+            >
+              Loading {symbol} chart…
             </Text>
           </View>
         )}
         <WebView
           key={`${symbol}-${interval}`}
-          source={{ html: buildHtml(symbol, interval, isDark) }}
+          source={{ uri: url }}
           style={styles.webview}
           onLoadEnd={() => setLoading(false)}
           javaScriptEnabled
@@ -129,6 +138,7 @@ export function StockChart({ symbol }: StockChartProps) {
           scrollEnabled={false}
           originWhitelist={["*"]}
           mixedContentMode="always"
+          thirdPartyCookiesEnabled
         />
       </View>
     </View>
@@ -146,6 +156,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 8,
   },
   title: {
     fontSize: 15,
