@@ -33,7 +33,9 @@ function getGreeting() {
   return "Good evening";
 }
 
-function getMarketStatus(): { open: boolean; label: string; next: string } {
+type MarketState = "open" | "closed" | "weekend" | "pre-market";
+
+function getMarketStatus(): { open: boolean; label: string; next: string; status: MarketState } {
   const now = new Date();
   // Convert to IST (UTC+5:30)
   const ist = new Date(now.getTime() + (5.5 * 60 - now.getTimezoneOffset()) * 60000);
@@ -43,6 +45,12 @@ function getMarketStatus(): { open: boolean; label: string; next: string } {
   const mins = h * 60 + m;
   const isWeekend = day === 0 || day === 6;
   const isOpen = !isWeekend && mins >= 555 && mins < 930; // 9:15 – 15:30
+
+  let status: MarketState = "open";
+  if (isWeekend) status = "weekend";
+  else if (!isOpen && mins < 555) status = "pre-market";
+  else if (!isOpen) status = "closed";
+
   const label = isWeekend
     ? "Weekend"
     : isOpen
@@ -57,8 +65,115 @@ function getMarketStatus(): { open: boolean; label: string; next: string } {
       : mins < 555
         ? "Opens 9:15 AM"
         : "Opens Tomorrow";
-  return { open: isOpen, label, next };
+  return { open: isOpen, label, next, status };
 }
+
+// ─── Market Closed Banner ─────────────────────────────────────────────────────
+
+function MarketClosedBanner({ status }: { status: MarketState }) {
+  const colors = useColors();
+
+  if (status === "open") return null;
+
+  const config = {
+    closed: {
+      icon: "moon" as const,
+      iconColor: "#F59E0B",
+      bg: "#F59E0B",
+      title: "Market Closed for Today",
+      body: "NSE & BSE have closed for the day. Come back before 9:15 AM tomorrow for fresh new trades.",
+      chip: "Opens 9:15 AM Tomorrow",
+    },
+    weekend: {
+      icon: "moon" as const,
+      iconColor: "#F59E0B",
+      bg: "#F59E0B",
+      title: "Markets Closed — Weekend",
+      body: "Enjoy your weekend! Fresh stock picks will be ready when NSE reopens on Monday at 9:15 AM.",
+      chip: "Opens Monday 9:15 AM",
+    },
+    "pre-market": {
+      icon: "clock" as const,
+      iconColor: "#10B981",
+      bg: "#10B981",
+      title: "Pre-Market Hours",
+      body: "Today's stock picks are being prepared. They'll be live when the market opens at 9:15 AM.",
+      chip: "Opens 9:15 AM Today",
+    },
+  }[status];
+
+  return (
+    <View style={[mcStyles.banner, { backgroundColor: config.bg + "15", borderColor: config.bg + "40" }]}>
+      <View style={[mcStyles.iconBox, { backgroundColor: config.bg + "25" }]}>
+        <Feather name={config.icon} size={20} color={config.iconColor} />
+      </View>
+      <View style={mcStyles.textBlock}>
+        <View style={mcStyles.titleRow}>
+          <Text style={[mcStyles.title, { color: colors.foreground }]}>{config.title}</Text>
+          <View style={[mcStyles.chip, { backgroundColor: config.bg + "22", borderColor: config.bg + "55" }]}>
+            <Feather name="clock" size={9} color={config.iconColor} />
+            <Text style={[mcStyles.chipText, { color: config.iconColor }]}>{config.chip}</Text>
+          </View>
+        </View>
+        <Text style={[mcStyles.body, { color: colors.mutedForeground }]}>{config.body}</Text>
+      </View>
+    </View>
+  );
+}
+
+const mcStyles = StyleSheet.create({
+  banner: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  iconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  textBlock: {
+    flex: 1,
+    gap: 6,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  chipText: {
+    fontSize: 10,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  body: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+  },
+});
 
 // ─── Traders Online Widget ────────────────────────────────────────────────────
 
@@ -202,6 +317,9 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+
+        {/* ── Market closed alert ─────────────────────────────────── */}
+        {!market.open && <MarketClosedBanner status={market.status} />}
 
         {/* ── Stats row ───────────────────────────────────────────── */}
         {stats ? (
