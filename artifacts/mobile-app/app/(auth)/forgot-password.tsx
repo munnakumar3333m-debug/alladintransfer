@@ -141,7 +141,7 @@ export default function ForgotPasswordScreen() {
             <View style={[styles.infoCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
               <Feather name="info" size={14} color={colors.primary} />
               <Text style={[styles.infoText, { color: colors.primary }]}>
-                Reset is done manually by our team. Share your registered phone number and we'll verify &amp; reset it for you.
+                Reset is done manually by our team. Share your registered phone number and we'll verify & reset it for you.
               </Text>
             </View>
 
