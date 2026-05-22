@@ -92,12 +92,49 @@ function getMarketStatus(): { open: boolean; label: string; next: string; status
   return { open: isOpen, label, next, status };
 }
 
-// ─── Market Closed Banner ─────────────────────────────────────────────────────
+// ─── Market Status Banner ─────────────────────────────────────────────────────
 
-function MarketClosedBanner({ status }: { status: MarketState }) {
+function MarketStatusBanner({ status }: { status: MarketState }) {
   const colors = useColors();
+  const pulse = useRef(new Animated.Value(1)).current;
 
-  if (status === "open") return null;
+  useEffect(() => {
+    if (status !== "open") return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.18, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [status, pulse]);
+
+  if (status === "open") {
+    return (
+      <View style={[mcStyles.banner, mcStyles.openBanner]}>
+        {/* Pulsing dot */}
+        <View style={mcStyles.openIconWrap}>
+          <Animated.View style={[mcStyles.openPulseRing, { transform: [{ scale: pulse }] }]} />
+          <View style={mcStyles.openIconBox}>
+            <Feather name="zap" size={20} color="#fff" />
+          </View>
+        </View>
+        <View style={mcStyles.textBlock}>
+          <View style={mcStyles.titleRow}>
+            <Text style={[mcStyles.title, { color: "#fff" }]}>Execute Your Trades Now!</Text>
+            <View style={mcStyles.openChip}>
+              <View style={mcStyles.openChipDot} />
+              <Text style={mcStyles.openChipText}>LIVE</Text>
+            </View>
+          </View>
+          <Text style={[mcStyles.body, { color: "rgba(255,255,255,0.75)" }]}>
+            Market is open — enter at current price and close before 3:15 PM IST.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const config = {
     closed: {
@@ -196,6 +233,55 @@ const mcStyles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     lineHeight: 18,
+  },
+  openBanner: {
+    backgroundColor: "#059669",
+    borderColor: "#10B981",
+  },
+  openIconWrap: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  openPulseRing: {
+    position: "absolute",
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "rgba(16,185,129,0.35)",
+  },
+  openIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  openChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  openChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#fff",
+  },
+  openChipText: {
+    fontSize: 10,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+    letterSpacing: 0.8,
   },
 });
 
@@ -359,8 +445,8 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── Market closed alert ─────────────────────────────────── */}
-        {!market.open && <MarketClosedBanner status={market.status} />}
+        {/* ── Market status banner ────────────────────────────────── */}
+        <MarketStatusBanner status={market.status} />
 
         {/* ── Stats row ───────────────────────────────────────────── */}
         {stats ? (
