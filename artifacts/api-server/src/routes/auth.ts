@@ -15,7 +15,8 @@ const router: IRouter = Router();
 router.post("/auth/register", async (req, res): Promise<void> => {
   const parsed = RegisterBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    const msg = parsed.error.issues[0]?.message ?? "Invalid request";
+    res.status(400).json({ error: msg });
     return;
   }
   const { name, phone, email, password } = parsed.data;
