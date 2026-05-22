@@ -420,16 +420,18 @@ export default function HomeScreen() {
 
         {/* ── Greeting card (+ inline quote if posted) ───────────── */}
         <View style={[styles.greetCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.greetText, { color: colors.mutedForeground }]}>
-            {getGreeting()},
-          </Text>
-          <Text style={[styles.greetName, { color: colors.foreground }]}>{firstName} 👋</Text>
-          <View style={styles.greetMeta}>
-            <Feather name="calendar" size={11} color={colors.mutedForeground} />
-            <Text style={[styles.greetDate, { color: colors.mutedForeground }]}>{today}</Text>
+          <View style={styles.greetLeft}>
+            <Text style={[styles.greetText, { color: colors.mutedForeground }]}>
+              {getGreeting()},
+            </Text>
+            <Text style={[styles.greetName, { color: colors.foreground }]}>{firstName} 👋</Text>
+            <View style={styles.greetMeta}>
+              <Feather name="calendar" size={11} color={colors.mutedForeground} />
+              <Text style={[styles.greetDate, { color: colors.mutedForeground }]}>{today}</Text>
+            </View>
           </View>
           {quote && (
-            <View style={[styles.greetQuote, { borderTopColor: colors.border }]}>
+            <View style={[styles.greetQuote, { borderLeftColor: colors.border }]}>
               <Text style={[styles.greetQuoteOpenMark, { color: colors.primary }]}>"</Text>
               <Text style={[styles.greetQuoteText, { color: colors.mutedForeground }]}>{quote.quote}</Text>
               {quote.author ? (
@@ -634,10 +636,15 @@ const styles = StyleSheet.create({
 
   // Greeting card
   greetCard: {
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    gap: 12,
+  },
+  greetLeft: {
     gap: 2,
   },
   greetText: {
@@ -660,27 +667,26 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
   greetQuote: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
+    flex: 1,
+    paddingLeft: 12,
+    borderLeftWidth: 1,
     gap: 3,
   },
   greetQuoteOpenMark: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
-    lineHeight: 20,
-    marginBottom: 2,
+    lineHeight: 18,
   },
   greetQuoteText: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
-    lineHeight: 20,
+    lineHeight: 16,
     fontStyle: "italic",
   },
   greetQuoteAuthor: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
-    marginTop: 4,
+    marginTop: 2,
   },
 
   // Stats
