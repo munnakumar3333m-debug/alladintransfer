@@ -77,20 +77,35 @@ const splash = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  logoWrap: {
+    alignItems: "center",
+  },
   text: {
-    fontSize: 52,
+    fontSize: 88,
     fontWeight: "900",
     color: "#FFFFFF",
-    letterSpacing: 10,
+    letterSpacing: 16,
+    textShadowColor: "rgba(0,0,0,0.18)",
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 12,
+  },
+  divider: {
+    width: 120,
+    height: 2,
+    backgroundColor: "rgba(255,255,255,0.6)",
+    marginTop: 16,
+    marginBottom: 16,
+    borderRadius: 2,
   },
   tagline: {
-    fontSize: 13,
-    fontWeight: "500",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#FFFFFF",
-    letterSpacing: 3,
-    marginTop: 10,
-    opacity: 0.85,
+    letterSpacing: 5,
     textTransform: "uppercase",
+    textShadowColor: "rgba(0,0,0,0.15)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
 });
 
@@ -116,8 +131,11 @@ export default function RootLayout() {
   if (!minTimeElapsed || (!fontsLoaded && !fontError)) {
     return (
       <View style={splash.container}>
-        <Text style={splash.text}>ALLADIN</Text>
-        <Text style={splash.tagline}>Manufacturing Millionaires</Text>
+        <View style={splash.logoWrap}>
+          <Text style={splash.text}>ALLADIN</Text>
+          <View style={splash.divider} />
+          <Text style={splash.tagline}>Manufacturing Millionaires</Text>
+        </View>
       </View>
     );
   }
