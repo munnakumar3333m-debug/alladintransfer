@@ -71,7 +71,7 @@ export default function LoginScreen() {
           <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
             <Feather name="trending-up" size={32} color={colors.primaryForeground} />
           </View>
-          <Text style={[styles.appName, { color: colors.foreground }]}>Alladin V1.0</Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>ALLADIN</Text>
           <Text style={[styles.tagline, { color: colors.primary }]}>
             Powered by Blackrock India
           </Text>
