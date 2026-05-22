@@ -9,8 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#10B981"
     },
     "ios": {
@@ -20,7 +20,7 @@
       "package": "com.alphatrade.alladin",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#0D1117"
+        "backgroundColor": "#10B981"
       }
     },
     "web": {

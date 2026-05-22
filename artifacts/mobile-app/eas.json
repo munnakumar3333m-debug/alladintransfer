@@ -11,11 +11,17 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "c2930f0c-8335-4d9a-b80f-fd6688549f9e-00-3950dxvg3zhzv.sisko.replit.dev"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "c2930f0c-8335-4d9a-b80f-fd6688549f9e-00-3950dxvg3zhzv.sisko.replit.dev"
       }
     }
   },
