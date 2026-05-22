@@ -2,18 +2,15 @@ import { Router, type IRouter } from "express";
 import { db, dailyQuotesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
+import { todayIST } from "../ist";
 
 const router: IRouter = Router();
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 router.get("/quotes/today", requireAuth, async (req, res) => {
   const [quote] = await db
     .select()
     .from(dailyQuotesTable)
-    .where(eq(dailyQuotesTable.date, todayISO()))
+    .where(eq(dailyQuotesTable.date, todayIST()))
     .limit(1);
 
   if (!quote) {
@@ -36,7 +33,7 @@ router.post("/quotes", requireAdmin, async (req, res) => {
     return;
   }
 
-  const today = todayISO();
+  const today = todayIST();
   const [existing] = await db
     .select()
     .from(dailyQuotesTable)

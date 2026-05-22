@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, recommendationsTable, usersTable, paymentsTable } from "@workspace/db";
 import { eq, desc, and, sql, gte, lte, lt } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { todayIST, monthLabelIST, startOfMonthISTStr, endOfMonthISTStr, istMidnightUTC } from "../ist";
 import { z } from "zod";
 import {
   GetDashboardStatsResponse,
@@ -38,9 +39,8 @@ function formatRec(r: typeof recommendationsTable.$inferSelect) {
 }
 
 router.get("/analytics/dashboard", requireAuth, async (req, res): Promise<void> => {
-  const now = new Date();
-  const today = now.toISOString().split("T")[0];
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const today = todayIST();
+  const startOfMonth = startOfMonthISTStr(0);
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
 
@@ -77,13 +77,14 @@ router.get("/analytics/dashboard", requireAuth, async (req, res): Promise<void> 
     return sum + (r.pnlPercent ? parseFloat(r.pnlPercent) : 0);
   }, 0);
 
+  const nowMs = Date.now();
   let trialDaysRemaining: number | null = null;
   let premiumDaysRemaining: number | null = null;
   if (user?.subscriptionType === "trial" && user.trialExpiryDate) {
-    trialDaysRemaining = Math.max(0, Math.ceil((user.trialExpiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    trialDaysRemaining = Math.max(0, Math.ceil((user.trialExpiryDate.getTime() - nowMs) / (1000 * 60 * 60 * 24)));
   }
   if (user?.subscriptionType === "premium" && user.premiumExpiryDate) {
-    premiumDaysRemaining = Math.max(0, Math.ceil((user.premiumExpiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    premiumDaysRemaining = Math.max(0, Math.ceil((user.premiumExpiryDate.getTime() - nowMs) / (1000 * 60 * 60 * 24)));
   }
 
   res.json(GetDashboardStatsResponse.parse({
@@ -102,14 +103,11 @@ router.get("/analytics/dashboard", requireAuth, async (req, res): Promise<void> 
 
 router.get("/analytics/performance", requireAuth, async (_req, res): Promise<void> => {
   const months = [];
-  const now = new Date();
 
   for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const startDate = `${monthStr}-01`;
-    const endD = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-    const endDate = endD.toISOString().split("T")[0];
+    const monthStr = monthLabelIST(i);
+    const startDate = startOfMonthISTStr(i);
+    const endDate = endOfMonthISTStr(i);
 
     const recs = await db.select().from(recommendationsTable)
       .where(and(
@@ -145,7 +143,7 @@ router.get("/analytics/monthly/:month", requireAuth, async (req, res): Promise<v
   const startDate = `${month}-01`;
   const [year, m] = month.split("-").map(Number);
   const endD = new Date(year, m, 1);
-  const endDate = endD.toISOString().split("T")[0];
+  const endDate = `${endD.getFullYear()}-${String(endD.getMonth() + 1).padStart(2, "0")}-01`;
 
   const recs = await db.select().from(recommendationsTable)
     .where(and(
@@ -181,8 +179,8 @@ router.get("/analytics/monthly/:month", requireAuth, async (req, res): Promise<v
 // Admin analytics
 router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const startOfMonth = istMidnightUTC(startOfMonthISTStr(0));
+  const startOfLastMonth = istMidnightUTC(startOfMonthISTStr(1));
 
   const [users, payments, recs] = await Promise.all([
     db.select().from(usersTable),
@@ -237,15 +235,13 @@ router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.get("/admin/revenue", requireAuth, async (_req, res): Promise<void> => {
-  const now = new Date();
   const monthly = [];
   let totalRevenue = 0;
 
   for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const startDate = new Date(d.getFullYear(), d.getMonth(), 1);
-    const endDate = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    const monthStr = monthLabelIST(i);
+    const startDate = istMidnightUTC(startOfMonthISTStr(i));
+    const endDate = istMidnightUTC(endOfMonthISTStr(i));
 
     const monthPayments = await db.select().from(paymentsTable)
       .where(and(
@@ -275,14 +271,12 @@ router.get("/admin/revenue", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.get("/admin/user-growth", requireAuth, async (_req, res): Promise<void> => {
-  const now = new Date();
   const monthly = [];
 
   for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const startDate = new Date(d.getFullYear(), d.getMonth(), 1);
-    const endDate = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    const monthStr = monthLabelIST(i);
+    const startDate = istMidnightUTC(startOfMonthISTStr(i));
+    const endDate = istMidnightUTC(endOfMonthISTStr(i));
     const cumulativeDate = endDate;
 
     const [newUsers, totalUsers, premiumConversions] = await Promise.all([

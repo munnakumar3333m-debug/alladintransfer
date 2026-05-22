@@ -26,8 +26,19 @@ import { useColors } from "@/hooks/useColors";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function getISTHour(): number {
+  return parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kolkata",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date()),
+    10,
+  );
+}
+
 function getGreeting() {
-  const h = new Date().getHours();
+  const h = getISTHour();
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";

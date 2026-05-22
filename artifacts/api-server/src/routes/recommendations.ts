@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, recommendationsTable } from "@workspace/db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
+import { todayIST } from "../ist";
 import {
   CreateRecommendationBody,
   UpdateRecommendationBody,
@@ -47,7 +48,7 @@ function hasActiveSubscription(subscriptionType: string, trialExpiry: Date | nul
 }
 
 router.get("/recommendations/today", requireAuth, async (req, res): Promise<void> => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIST();
 
   const recs = await db.select().from(recommendationsTable)
     .where(eq(recommendationsTable.date, today))
@@ -107,7 +108,7 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
     return;
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIST();
   const rawDate = parsed.data.date;
   const insertDate: string = rawDate instanceof Date ? rawDate.toISOString().split("T")[0] : (rawDate ?? today);
   const [rec] = await db.insert(recommendationsTable).values({

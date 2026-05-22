@@ -86,7 +86,7 @@ async function yahooChart(
       result: Array<{
         meta: { regularMarketPrice: number; currency: string; symbol: string };
         timestamp: number[];
-        indicators: { quote: Array<{ close: (number | null)[] }> };
+        indicators: { quote: Array<{ open: (number | null)[]; high: (number | null)[]; low: (number | null)[]; close: (number | null)[] }> };
       }> | null;
     };
   };
