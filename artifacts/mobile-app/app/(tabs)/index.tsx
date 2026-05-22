@@ -363,8 +363,18 @@ export default function HomeScreen() {
   const daysLeft = sub?.daysRemaining ?? 0;
   const widgetBottom = (Platform.OS === "web" ? 34 : insets.bottom) + 68;
 
-  const pnlVal = stats?.monthlyProfitPercent ?? 0;
-  const pnlPositive = pnlVal >= 0;
+  // Today's picks with outcomes updated by admin
+  const closedTodayRecs = (todayRecs ?? []).filter((r) => r.pnlPercent != null);
+  const todayWins = closedTodayRecs.filter((r) => Number(r.pnlPercent) > 0).length;
+  const todayWinRate = closedTodayRecs.length > 0 ? (todayWins / closedTodayRecs.length) * 100 : 0;
+  const todayAvgPnl =
+    closedTodayRecs.length > 0
+      ? closedTodayRecs.reduce((s, r) => s + Number(r.pnlPercent), 0) / closedTodayRecs.length
+      : 0;
+
+  // Show today's results only after market close (3:30–11:59 PM IST) and only if outcomes exist
+  const showTodayStats = market.status === "closed" && closedTodayRecs.length > 0;
+  const pnlPositive = todayAvgPnl >= 0;
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.background }]}>
@@ -448,43 +458,56 @@ export default function HomeScreen() {
         {/* ── Market status banner ────────────────────────────────── */}
         <MarketStatusBanner status={market.status} />
 
-        {/* ── Stats row ───────────────────────────────────────────── */}
-        {stats ? (
-          <View style={styles.statsRow}>
-            {/* Win Rate */}
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.statIconBox, { backgroundColor: colors.positive + "20" }]}>
-                <Feather name="target" size={14} color={colors.positive} />
-              </View>
-              <Text style={[styles.statVal, { color: colors.positive }]}>
-                {stats.winRate?.toFixed(1) ?? 0}%
+        {/* ── Today's results (visible 3:30–11:59 PM IST, only once outcomes are set) */}
+        {showTodayStats && (
+          <View>
+            <View style={styles.resultsSectionHeader}>
+              <View style={[styles.resultsDot, { backgroundColor: colors.positive }]} />
+              <Text style={[styles.resultsSectionTitle, { color: colors.foreground }]}>
+                {"Today's Results"}
               </Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Win Rate</Text>
+              <View style={[styles.resultsChip, { backgroundColor: colors.positive + "18", borderColor: colors.positive + "40" }]}>
+                <Text style={[styles.resultsChipText, { color: colors.positive }]}>
+                  {closedTodayRecs.length}/{todayRecs?.length ?? 0} settled
+                </Text>
+              </View>
             </View>
-
-            {/* Total picks */}
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.statIconBox, { backgroundColor: colors.primary + "20" }]}>
-                <Feather name="bar-chart-2" size={14} color={colors.primary} />
+            <View style={styles.statsRow}>
+              {/* Win Rate */}
+              <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.statIconBox, { backgroundColor: colors.positive + "20" }]}>
+                  <Feather name="target" size={14} color={colors.positive} />
+                </View>
+                <Text style={[styles.statVal, { color: colors.positive }]}>
+                  {todayWinRate.toFixed(1)}%
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Win Rate</Text>
               </View>
-              <Text style={[styles.statVal, { color: colors.primary }]}>
-                {stats.totalTrades ?? 0}
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Total Picks</Text>
-            </View>
 
-            {/* Avg P&L */}
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.statIconBox, { backgroundColor: (pnlPositive ? colors.positive : colors.negative) + "20" }]}>
-                <Feather name="percent" size={14} color={pnlPositive ? colors.positive : colors.negative} />
+              {/* Total picks */}
+              <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.statIconBox, { backgroundColor: colors.primary + "20" }]}>
+                  <Feather name="bar-chart-2" size={14} color={colors.primary} />
+                </View>
+                <Text style={[styles.statVal, { color: colors.primary }]}>
+                  {closedTodayRecs.length}
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Total Picks</Text>
               </View>
-              <Text style={[styles.statVal, { color: pnlPositive ? colors.positive : colors.negative }]}>
-                {pnlPositive ? "+" : ""}{pnlVal.toFixed(1)}%
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Avg P&L</Text>
+
+              {/* Avg P&L */}
+              <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.statIconBox, { backgroundColor: (pnlPositive ? colors.positive : colors.negative) + "20" }]}>
+                  <Feather name="percent" size={14} color={pnlPositive ? colors.positive : colors.negative} />
+                </View>
+                <Text style={[styles.statVal, { color: pnlPositive ? colors.positive : colors.negative }]}>
+                  {pnlPositive ? "+" : ""}{todayAvgPnl.toFixed(1)}%
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Avg P&L</Text>
+              </View>
             </View>
           </View>
-        ) : null}
+        )}
 
         {/* ── Today's picks ───────────────────────────────────────── */}
         <View style={styles.section}>
@@ -675,6 +698,34 @@ const styles = StyleSheet.create({
   },
 
   // Stats
+  resultsSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  resultsDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  resultsSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    flex: 1,
+  },
+  resultsChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  resultsChipText: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+  },
   statsRow: {
     flexDirection: "row",
     gap: 10,
