@@ -495,6 +495,39 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* ── Intraday execution guidelines ───────────────────────── */}
+        <View style={[styles.executionCard, { backgroundColor: colors.card, borderColor: colors.primary + "30" }]}>
+          <View style={styles.executionHeader}>
+            <View style={[styles.executionIconBox, { backgroundColor: colors.primary + "20" }]}>
+              <Feather name="zap" size={13} color={colors.primary} />
+            </View>
+            <Text style={[styles.executionTitle, { color: colors.primary }]}>Intraday Execution Guidelines</Text>
+          </View>
+          <View style={styles.executionRows}>
+            <View style={styles.executionRow}>
+              <View style={[styles.executionBullet, { backgroundColor: colors.primary }]} />
+              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                <Text style={[styles.executionBold, { color: colors.foreground }]}>Signals posted</Text>
+                {" before 9:00 AM IST every trading day"}
+              </Text>
+            </View>
+            <View style={styles.executionRow}>
+              <View style={[styles.executionBullet, { backgroundColor: colors.positive }]} />
+              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                <Text style={[styles.executionBold, { color: colors.foreground }]}>Entry at 9:15 AM</Text>
+                {" — opening price via Market or Limit order"}
+              </Text>
+            </View>
+            <View style={styles.executionRow}>
+              <View style={[styles.executionBullet, { backgroundColor: colors.negative }]} />
+              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                <Text style={[styles.executionBold, { color: colors.foreground }]}>Exit by 3:15 PM IST</Text>
+                {" — EOD square-off or on Target hit (whichever is first)"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Today's picks ───────────────────────────────────────── */}
         <View style={styles.section}>
           <View style={[styles.picksHeader, { borderColor: colors.border }]}>
@@ -687,6 +720,59 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_500Medium",
     marginTop: 2,
+  },
+
+  // Execution guidelines card
+  executionCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  executionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  executionIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  executionTitle: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
+  executionRows: {
+    gap: 7,
+  },
+  executionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  executionBullet: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    marginTop: 5,
+    flexShrink: 0,
+  },
+  executionText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+    flex: 1,
+  },
+  executionBold: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
   },
 
   // Stats
