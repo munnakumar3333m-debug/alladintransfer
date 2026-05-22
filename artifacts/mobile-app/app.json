@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Alladin",
-    "slug": "mobile-app",
+    "slug": "alladin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -38,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "adf3bf51-f8c7-4297-81e1-ad3757a62127"
+      }
+    },
+    "owner": "alladinmanish"
   }
 }
