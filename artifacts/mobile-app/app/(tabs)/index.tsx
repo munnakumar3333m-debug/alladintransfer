@@ -129,7 +129,7 @@ function MarketStatusBanner({ status }: { status: MarketState }) {
             </View>
           </View>
           <Text style={[mcStyles.body, { color: "rgba(255,255,255,0.75)" }]}>
-            Market is open — enter at current price and close before 3:15 PM IST.
+            Market is open — enter at exact opening price via Limit or Market order and chill till 2% TP or end of the day (EOD).
           </Text>
         </View>
       </View>
