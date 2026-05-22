@@ -3,7 +3,6 @@ previewPath = "/"
 title = "AlphaTrade Pro"
 version = "1.0.0"
 id = "artifacts/mobile-app"
-router = "expo-domain"
 
 [[integratedSkills]]
 name = "expo"
