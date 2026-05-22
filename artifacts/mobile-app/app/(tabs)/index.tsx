@@ -67,15 +67,15 @@ function getMarketStatus(): { open: boolean; label: string; next: string; status
     : isOpen
       ? "Market Open"
       : mins < 555
-        ? "Pre-Market"
+        ? "Preparing Signals"
         : "Market Closed";
   const next = isOpen
-    ? "Closes 3:30 PM"
+    ? "Closes 3:30 PM IST"
     : isWeekend
-      ? "Opens Monday"
+      ? "Signals Monday 9 AM"
       : mins < 555
-        ? "Signals at 9:00 AM"
-        : "Opens Tomorrow";
+        ? "Signals Before 9:00 AM"
+        : "Signals Tomorrow 9 AM";
   return { open: isOpen, label, next, status };
 }
 
@@ -92,24 +92,24 @@ function MarketClosedBanner({ status }: { status: MarketState }) {
       iconColor: "#F59E0B",
       bg: "#F59E0B",
       title: "Market Closed for Today",
-      body: "NSE & BSE have closed for the day. Tomorrow's fresh signals will be posted before 9:00 AM.",
-      chip: "Signals by 9:00 AM Tomorrow",
+      body: "NSE & BSE have wrapped up for the day. Fresh intraday signals for tomorrow will be posted before 9:00 AM IST.",
+      chip: "Signals Tomorrow by 9 AM",
     },
     weekend: {
-      icon: "moon" as const,
-      iconColor: "#F59E0B",
-      bg: "#F59E0B",
-      title: "Markets Closed — Weekend",
-      body: "Enjoy your weekend! Fresh signals for Monday will be posted before 9:00 AM.",
-      chip: "Signals Monday by 9:00 AM",
+      icon: "sun" as const,
+      iconColor: "#818CF8",
+      bg: "#818CF8",
+      title: "Enjoy the Weekend! 🎉",
+      body: "Markets are closed — take a well-deserved break. We'll be back with high-quality Monday picks before 9:00 AM IST.",
+      chip: "Signals Monday by 9 AM",
     },
     "pre-market": {
-      icon: "clock" as const,
+      icon: "zap" as const,
       iconColor: "#10B981",
       bg: "#10B981",
-      title: "Signals Drop Before 9:00 AM",
-      body: "Today's stock picks will be posted before 9:00 AM. Check back soon!",
-      chip: "Coming Soon",
+      title: "Preparing Today's Signals",
+      body: "Our analysts are curating high-quality intraday tips for today. Signals will be posted before 9:00 AM IST — check back soon!",
+      chip: "Dropping Before 9:00 AM",
     },
   }[status];
 
