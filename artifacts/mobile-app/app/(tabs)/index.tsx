@@ -46,14 +46,27 @@ function getGreeting() {
 
 type MarketState = "open" | "closed" | "weekend" | "pre-market";
 
+function getISTDateParts(): { day: number; mins: number } {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "0";
+  const weekdayMap: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  const day = weekdayMap[get("weekday")] ?? 0;
+  const h = parseInt(get("hour"), 10);
+  const m = parseInt(get("minute"), 10);
+  return { day, mins: h * 60 + m };
+}
+
 function getMarketStatus(): { open: boolean; label: string; next: string; status: MarketState } {
-  const now = new Date();
-  // Convert to IST (UTC+5:30)
-  const ist = new Date(now.getTime() + (5.5 * 60 - now.getTimezoneOffset()) * 60000);
-  const day = ist.getDay(); // 0=Sun, 6=Sat
-  const h = ist.getHours();
-  const m = ist.getMinutes();
-  const mins = h * 60 + m;
+  const { day, mins } = getISTDateParts();
   const isWeekend = day === 0 || day === 6;
   const isOpen = !isWeekend && mins >= 555 && mins < 930; // 9:15 – 15:30
 
