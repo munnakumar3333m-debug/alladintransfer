@@ -7,6 +7,8 @@
  */
 
 export * from './authResponse';
+export * from './chatConversation';
+export * from './chatMessage';
 export * from './createRecommendationRequest';
 export * from './dailyQuote';
 export * from './dashboardStats';
@@ -25,7 +27,9 @@ export * from './recommendationList';
 export * from './recommendationStatus';
 export * from './registerRequest';
 export * from './resetPasswordRequest';
+export * from './sendMessageRequest';
 export * from './signalType';
+export * from './skipTodayStatus';
 export * from './subscriptionStatus';
 export * from './subscriptionStatusSubscriptionType';
 export * from './tradeType';

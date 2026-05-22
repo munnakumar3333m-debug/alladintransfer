@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, recommendationsTable } from "@workspace/db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { db, recommendationsTable, usersTable } from "@workspace/db";
+import { eq, desc, and, sql, or } from "drizzle-orm";
+import { sendWhatsAppNotification } from "../lib/whatsapp";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { todayIST } from "../ist";
 import {
@@ -128,6 +129,28 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
   }).returning();
 
   res.status(201).json(GetRecommendationResponse.parse(formatRec(rec)));
+
+  const dateStr = insertDate;
+  const symbol = rec.nseSymbol;
+  const signal = rec.signalType ?? "BUY";
+  const entry = rec.buyPrice ?? "Opening Price";
+  const target = rec.targetPrice ?? "—";
+  const sl = rec.stopLoss && rec.stopLoss.toLowerCase() !== "none" ? rec.stopLoss : "None";
+  const waMsg = `📈 *AlphaTrade Pro — New Pick!*\n\n*${signal}: ${symbol}*\n📅 ${dateStr}\n💰 Entry: ${entry}\n🎯 Target: ${target}\n🛑 SL: ${sl}\n\n_Trade at 9:15 AM opening price. All trades intraday._\n\n_Open the app for full analysis._`;
+
+  const now = new Date();
+  const activeUsers = await db
+    .select({ phone: usersTable.phone })
+    .from(usersTable)
+    .where(
+      or(
+        and(eq(usersTable.subscriptionType, "trial"), sql`${usersTable.trialExpiryDate} > ${now}`),
+        and(eq(usersTable.subscriptionType, "premium"), sql`${usersTable.premiumExpiryDate} > ${now}`)
+      )
+    );
+
+  const phones = activeUsers.map((u) => u.phone).filter(Boolean) as string[];
+  sendWhatsAppNotification(phones, waMsg).catch(() => {});
 });
 
 router.put("/recommendations/:id", requireAdmin, async (req, res): Promise<void> => {

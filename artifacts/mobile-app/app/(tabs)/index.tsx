@@ -2,9 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import {
   useGetDashboardStats,
   useGetMe,
+  useGetSkipToday,
   useGetSubscriptionStatus,
   useGetTodayRecommendations,
   useGetTodayQuote,
+  useSkipToday,
 } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -349,6 +351,14 @@ export default function HomeScreen() {
   const { data: stats, refetch: refetchStats } = useGetDashboardStats();
   const { data: sub } = useGetSubscriptionStatus();
   const { data: quote, refetch: refetchQuote } = useGetTodayQuote();
+  const { data: skipStatus, refetch: refetchSkip } = useGetSkipToday();
+  const { mutate: toggleSkip, isPending: skipPending } = useSkipToday();
+
+  const isSkipped = skipStatus?.skipped ?? false;
+
+  const handleSkip = () => {
+    toggleSkip(undefined, { onSuccess: () => refetchSkip() });
+  };
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const onRefresh = async () => {
@@ -511,14 +521,41 @@ export default function HomeScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity
-              style={[styles.historyBtn, { borderColor: colors.border }]}
-              onPress={() => router.push("/(tabs)/history")}
-            >
-              <Text style={[styles.historyBtnText, { color: colors.mutedForeground }]}>History</Text>
-              <Feather name="arrow-right" size={12} color={colors.mutedForeground} />
-            </TouchableOpacity>
+            <View style={styles.picksHeaderRight}>
+              <TouchableOpacity
+                style={[
+                  styles.skipBtn,
+                  isSkipped
+                    ? { backgroundColor: "#EF444420", borderColor: "#EF4444" }
+                    : { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+                onPress={handleSkip}
+                disabled={skipPending}
+              >
+                <Feather
+                  name={isSkipped ? "x-circle" : "skip-forward"}
+                  size={12}
+                  color={isSkipped ? "#EF4444" : colors.mutedForeground}
+                />
+                <Text style={[styles.skipBtnText, { color: isSkipped ? "#EF4444" : colors.mutedForeground }]}>
+                  {isSkipped ? "Unskip" : "Skip Today"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.historyBtn, { borderColor: colors.border }]}
+                onPress={() => router.push("/(tabs)/history")}
+              >
+                <Text style={[styles.historyBtnText, { color: colors.mutedForeground }]}>History</Text>
+                <Feather name="arrow-right" size={12} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
           </View>
+          {isSkipped && (
+            <View style={[styles.skipBanner, { backgroundColor: "#EF444415", borderColor: "#EF444440" }]}>
+              <Feather name="moon" size={14} color="#EF4444" />
+              <Text style={styles.skipBannerText}>You've skipped trading today. Stay disciplined!</Text>
+            </View>
+          )}
 
           {recsLoading ? (
             <ActivityIndicator color={colors.primary} style={styles.loader} />
@@ -879,6 +916,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flex: 1,
+  },
+  picksHeaderRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  skipBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  skipBtnText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  skipBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  skipBannerText: {
+    color: "#EF4444",
+    fontSize: 13,
+    fontWeight: "500",
+    flex: 1,
   },
   picksDot: {
     width: 7,

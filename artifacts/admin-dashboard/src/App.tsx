@@ -13,6 +13,7 @@ import AnalyticsPage from "@/pages/analytics";
 import NotificationsPage from "@/pages/notifications";
 import ReferralsPage from "@/pages/referrals";
 import QuotesPage from "@/pages/quotes";
+import ChatPage from "@/pages/chat";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -80,6 +81,13 @@ function Router() {
         {() => (
           <ProtectedLayout>
             <QuotesPage />
+          </ProtectedLayout>
+        )}
+      </Route>
+      <Route path="/chat">
+        {() => (
+          <ProtectedLayout>
+            <ChatPage />
           </ProtectedLayout>
         )}
       </Route>

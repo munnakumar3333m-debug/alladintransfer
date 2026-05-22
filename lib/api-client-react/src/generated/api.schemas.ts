@@ -235,6 +235,33 @@ export interface RecommendationList {
   totalPages: number;
 }
 
+export interface SkipTodayStatus {
+  skipped: boolean;
+  date: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  userId: number;
+  message: string;
+  isAdmin: boolean;
+  readAt?: string | null;
+  createdAt: string;
+}
+
+export interface SendMessageRequest {
+  message: string;
+}
+
+export interface ChatConversation {
+  userId: number;
+  userName: string;
+  userPhone: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
 export type ListRecommendationsParams = {
 /**
  * Filter by date (YYYY-MM-DD)

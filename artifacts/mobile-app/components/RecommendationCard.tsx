@@ -12,9 +12,20 @@ interface Props {
 }
 
 function fmtPrice(val: string | number | null | undefined): string {
-  if (val == null) return "—";
+  if (val == null || String(val).trim() === "") return "—";
   const s = String(val).trim();
   return /^[\d.,]+$/.test(s) ? `₹${s}` : s;
+}
+
+function fmtStopLoss(val: string | number | null | undefined): string {
+  if (val == null || String(val).trim() === "" || String(val).trim().toLowerCase() === "none") return "None";
+  return fmtPrice(val);
+}
+
+function slColor(val: string | number | null | undefined, fallback: string): string {
+  const s = String(val ?? "").trim().toLowerCase();
+  if (!s || s === "none") return "#64748B";
+  return fallback;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -110,11 +121,11 @@ export function RecommendationCard({ rec, onPress }: Props) {
 
       {/* ── Price grid ──────────────────────────────────── */}
       <View style={[styles.priceGrid, { backgroundColor: colors.background, borderColor: colors.border }]}>
-        <PriceCell label="Entry @ 9:15 AM" value={fmtPrice(rec.buyPrice)}  valueColor={colors.foreground} />
+        <PriceCell label="Opening Price"   value={fmtPrice(rec.buyPrice)}    valueColor={colors.foreground} />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
         <PriceCell label="Target"          value={fmtPrice(rec.targetPrice)} valueColor="#10B981" />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
-        <PriceCell label="Stop Loss"       value={fmtPrice(rec.stopLoss)}   valueColor="#EF4444" />
+        <PriceCell label="Stop Loss"       value={fmtStopLoss(rec.stopLoss)} valueColor={slColor(rec.stopLoss, "#EF4444")} />
       </View>
 
       {/* ── P&L row (when available) ─────────────────── */}

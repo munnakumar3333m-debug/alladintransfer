@@ -10,11 +10,14 @@ import subscriptionsRouter from "./subscriptions";
 import referralsRouter from "./referrals";
 import quotesRouter from "./quotes";
 import stocksRouter from "./stocks";
+import chatRouter from "./chat";
+import skipTodayRouter from "./skipToday";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
+router.use(skipTodayRouter);
 router.use(recommendationsRouter);
 router.use(analyticsRouter);
 router.use(adminRouter);
@@ -24,5 +27,6 @@ router.use(subscriptionsRouter);
 router.use(referralsRouter);
 router.use(quotesRouter);
 router.use(stocksRouter);
+router.use(chatRouter);
 
 export default router;

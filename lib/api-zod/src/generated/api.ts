@@ -451,3 +451,95 @@ export const PostDailyQuoteResponse = zod.object({
 })
 
 
+/**
+ * @summary Check if user skipped trading today
+ */
+export const GetSkipTodayResponse = zod.object({
+  "skipped": zod.boolean(),
+  "date": zod.string()
+})
+
+
+/**
+ * @summary Toggle skip today status
+ */
+export const SkipTodayResponse = zod.object({
+  "skipped": zod.boolean(),
+  "date": zod.string()
+})
+
+
+/**
+ * @summary Get chat messages for current user
+ */
+export const GetChatMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "message": zod.string(),
+  "isAdmin": zod.boolean(),
+  "readAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetChatMessagesResponse = zod.array(GetChatMessagesResponseItem)
+
+
+/**
+ * @summary Send a message
+ */
+export const SendChatMessageBody = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get all user conversations (admin only)
+ */
+export const GetChatConversationsResponseItem = zod.object({
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "userPhone": zod.string(),
+  "lastMessage": zod.string(),
+  "lastMessageAt": zod.string(),
+  "unreadCount": zod.number()
+})
+export const GetChatConversationsResponse = zod.array(GetChatConversationsResponseItem)
+
+
+/**
+ * @summary Get messages for a specific user conversation (admin only)
+ */
+export const GetConversationMessagesParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const GetConversationMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "message": zod.string(),
+  "isAdmin": zod.boolean(),
+  "readAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetConversationMessagesResponse = zod.array(GetConversationMessagesResponseItem)
+
+
+/**
+ * @summary Send a message to a user (admin only)
+ */
+export const SendAdminMessageParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const SendAdminMessageBody = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Mark all messages from a user as read (admin only)
+ */
+export const MarkConversationReadParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+
