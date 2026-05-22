@@ -9,7 +9,7 @@ import { setBaseUrl } from "@workspace/api-client-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Redirect, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -94,6 +94,8 @@ const splash = StyleSheet.create({
   },
 });
 
+const SPLASH_MIN_MS = 2500;
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -101,12 +103,17 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true);
+      SplashScreen.hideAsync();
+    }, SPLASH_MIN_MS);
+    return () => clearTimeout(timer);
   }, []);
 
-  if (!fontsLoaded && !fontError) {
+  if (!minTimeElapsed || (!fontsLoaded && !fontError)) {
     return (
       <View style={splash.container}>
         <Text style={splash.text}>ALLADIN</Text>
