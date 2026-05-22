@@ -495,39 +495,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── Intraday execution guidelines ───────────────────────── */}
-        <View style={[styles.executionCard, { backgroundColor: colors.card, borderColor: colors.primary + "30" }]}>
-          <View style={styles.executionHeader}>
-            <View style={[styles.executionIconBox, { backgroundColor: colors.primary + "20" }]}>
-              <Feather name="zap" size={13} color={colors.primary} />
-            </View>
-            <Text style={[styles.executionTitle, { color: colors.primary }]}>Intraday Execution Guidelines</Text>
-          </View>
-          <View style={styles.executionRows}>
-            <View style={styles.executionRow}>
-              <View style={[styles.executionBullet, { backgroundColor: colors.primary }]} />
-              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
-                <Text style={[styles.executionBold, { color: colors.foreground }]}>Signals posted</Text>
-                {" before 9:00 AM IST every trading day"}
-              </Text>
-            </View>
-            <View style={styles.executionRow}>
-              <View style={[styles.executionBullet, { backgroundColor: colors.positive }]} />
-              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
-                <Text style={[styles.executionBold, { color: colors.foreground }]}>Entry at 9:15 AM</Text>
-                {" — opening price via Market or Limit order"}
-              </Text>
-            </View>
-            <View style={styles.executionRow}>
-              <View style={[styles.executionBullet, { backgroundColor: colors.negative }]} />
-              <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
-                <Text style={[styles.executionBold, { color: colors.foreground }]}>Exit by 3:15 PM IST</Text>
-                {" — EOD square-off or on Target hit (whichever is first)"}
-              </Text>
-            </View>
-          </View>
-        </View>
-
         {/* ── Today's picks ───────────────────────────────────────── */}
         <View style={styles.section}>
           <View style={[styles.picksHeader, { borderColor: colors.border }]}>
@@ -573,9 +540,29 @@ export default function HomeScreen() {
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
                 No picks today yet
               </Text>
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                Intraday signals are posted before 9:00 AM. Execute at 9:15 AM opening price and close before 3:15 PM.
-              </Text>
+              <View style={styles.executionRows}>
+                <View style={styles.executionRow}>
+                  <View style={[styles.executionBullet, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                    <Text style={[styles.executionBold, { color: colors.foreground }]}>Signals posted</Text>
+                    {" before 9:00 AM IST every trading day"}
+                  </Text>
+                </View>
+                <View style={styles.executionRow}>
+                  <View style={[styles.executionBullet, { backgroundColor: colors.positive }]} />
+                  <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                    <Text style={[styles.executionBold, { color: colors.foreground }]}>Entry at 9:15 AM</Text>
+                    {" — opening price via Market or Limit order"}
+                  </Text>
+                </View>
+                <View style={styles.executionRow}>
+                  <View style={[styles.executionBullet, { backgroundColor: colors.negative }]} />
+                  <Text style={[styles.executionText, { color: colors.mutedForeground }]}>
+                    <Text style={[styles.executionBold, { color: colors.foreground }]}>Exit by 3:15 PM IST</Text>
+                    {" — EOD square-off or on Target hit (whichever is first)"}
+                  </Text>
+                </View>
+              </View>
               <TouchableOpacity
                 style={[styles.emptyBtn, { borderColor: colors.primary + "50" }]}
                 onPress={() => router.push("/(tabs)/history")}
