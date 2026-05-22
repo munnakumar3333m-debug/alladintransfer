@@ -738,6 +738,7 @@ const styles = StyleSheet.create({
   },
   executionRows: {
     gap: 7,
+    alignSelf: "stretch",
   },
   executionRow: {
     flexDirection: "row",
