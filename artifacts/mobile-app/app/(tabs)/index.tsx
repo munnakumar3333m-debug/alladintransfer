@@ -389,8 +389,8 @@ export default function HomeScreen() {
               <Feather name="trending-up" size={16} color={colors.primaryForeground} />
             </View>
             <View>
-              <Text style={[styles.appName, { color: colors.foreground }]}>Alladin</Text>
-              <Text style={[styles.appTagline, { color: colors.primary }]}>Manufacturing Millionaires</Text>
+              <Text style={[styles.appName, { color: colors.foreground }]}>Alladin V1.0</Text>
+              <Text style={[styles.appTagline, { color: colors.primary }]}>Powered by Blackrock India</Text>
             </View>
           </View>
           <View style={styles.appHeaderRight}>

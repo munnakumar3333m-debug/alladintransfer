@@ -110,7 +110,7 @@ export default function RootLayout() {
     return (
       <View style={splash.container}>
         <Text style={splash.text}>ALLADIN</Text>
-        <Text style={splash.tagline}>Manufacturing Millionaires</Text>
+        <Text style={splash.tagline}>Powered by Blackrock India</Text>
       </View>
     );
   }

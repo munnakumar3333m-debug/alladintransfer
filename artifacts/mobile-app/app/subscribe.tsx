@@ -125,8 +125,8 @@ export default function SubscribeScreen() {
                 <View style={[styles.statusDot, { backgroundColor: badgeColor === colors.primary ? "#FFFFFF" : badgeColor }]} />
                 <Text style={styles.statusPillText}>{badge}</Text>
               </View>
-              <Text style={styles.heroTitle}>Alladin Premium</Text>
-              <Text style={styles.heroTagline}>Manufacturing Millionaires</Text>
+              <Text style={styles.heroTitle}>Alladin V1.0 Premium</Text>
+              <Text style={styles.heroTagline}>Powered by Blackrock India</Text>
             </View>
             <View style={styles.priceBlock}>
               <Text style={styles.priceCurrency}>₹</Text>
