@@ -348,12 +348,12 @@ export default function HomeScreen() {
   const { data: todayRecs, isLoading: recsLoading, refetch: refetchRecs } = useGetTodayRecommendations();
   const { data: stats, refetch: refetchStats } = useGetDashboardStats();
   const { data: sub } = useGetSubscriptionStatus();
-  const { data: quote } = useGetTodayQuote();
+  const { data: quote, refetch: refetchQuote } = useGetTodayQuote();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([refetchRecs(), refetchStats()]);
+    await Promise.all([refetchRecs(), refetchStats(), refetchQuote()]);
     setIsRefreshing(false);
   };
 
