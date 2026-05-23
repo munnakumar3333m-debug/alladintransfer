@@ -593,6 +593,13 @@ export default function HomeScreen() {
                   </Text>
                 </View>
               </View>
+              <TouchableOpacity
+                style={[styles.emptyBtn, { borderColor: colors.primary + "50" }]}
+                onPress={() => router.push("/(tabs)/history")}
+              >
+                <Feather name="clock" size={13} color={colors.primary} />
+                <Text style={[styles.emptyBtnText, { color: colors.primary }]}>View past picks</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
