@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { CommunityModal } from "@/components/CommunityModal";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -273,6 +274,7 @@ export default function AnalyticsScreen() {
 
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [showWinRate, setShowWinRate] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const isLoading = statsLoading || perfLoading;
   const hasError = statsError || perfError;
@@ -370,6 +372,7 @@ export default function AnalyticsScreen() {
   ] : [];
 
   return (
+    <View style={styles.flex}>
     <ScrollView
       ref={scrollRef}
       style={[styles.flex, { backgroundColor: colors.background }]}
@@ -527,6 +530,18 @@ export default function AnalyticsScreen() {
         </>
       )}
     </ScrollView>
+
+      {/* Floating Community Chat Button */}
+      <TouchableOpacity
+        onPress={() => setChatOpen(true)}
+        style={[styles.fab, { bottom: (Platform.OS === "web" ? 34 : insets.bottom) + 100 }]}
+        activeOpacity={0.85}
+      >
+        <Feather name="message-circle" size={22} color="#fff" />
+      </TouchableOpacity>
+
+      <CommunityModal visible={chatOpen} onClose={() => setChatOpen(false)} />
+    </View>
   );
 }
 
@@ -534,6 +549,21 @@ export default function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  fab: {
+    position: "absolute",
+    right: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#10B981",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 8,
+  },
   content: { paddingHorizontal: 16, gap: 14 },
   title: {
     fontSize: 24,

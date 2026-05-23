@@ -64,10 +64,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="chat"
-        options={{
-          title: "Chat",
-          tabBarIcon: ({ color }) => <Feather name="message-circle" size={22} color={color} />,
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="profile"
