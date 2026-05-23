@@ -181,7 +181,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
 
       {/* ── Price grid ──────────────────────────────────── */}
       <View style={[styles.priceGrid, { backgroundColor: colors.background, borderColor: colors.border }]}>
-        <PriceCell label="ENTRY"            value={fmtPrice(rec.buyPrice)}    valueColor={colors.foreground} />
+        <PriceCell label="Opening Price"     value={fmtPrice(rec.buyPrice)}    valueColor={colors.foreground} />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
         <PriceCell label="Target"          value={fmtPrice(rec.targetPrice)} valueColor="#10B981" />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
@@ -406,11 +406,11 @@ const styles = StyleSheet.create({
   },
   priceCellLabel: {
     color: "#475569",
-    fontSize: 9.5,
+    fontSize: 8,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     textTransform: "uppercase",
-    letterSpacing: 0.2,
+    letterSpacing: 0,
   },
   priceCellValue: {
     fontSize: 13.5,
