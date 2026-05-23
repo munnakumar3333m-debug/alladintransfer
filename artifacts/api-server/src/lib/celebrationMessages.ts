@@ -121,6 +121,21 @@ const TEMPLATES = [
   "Portfolio dekh ke bank manager bhi poochhta hai ye {S} wala kya tha",
   "Simple formula, Alladin call aaye, entry lo, {S} jaisa result dekho",
   "{S} target done. Agli call ka notification on rakho",
+  "🔥🔥🔥",
+  "💰💰",
+  "📈📈📈",
+  "🎯🎯",
+  "💪💪💪",
+  "🔥",
+  "💸💸",
+  "📈",
+  "🤑🤑",
+  "💯💯",
+  "🚀🚀",
+  "👌👌👌",
+  "💎💎",
+  "🙌🙌",
+  "🔥🔥",
 ];
 
 function pick<T>(arr: T[]): T {
