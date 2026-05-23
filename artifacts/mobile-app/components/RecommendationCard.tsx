@@ -341,10 +341,10 @@ const styles = StyleSheet.create({
   },
   ltpLabel: {
     color: "#10B981",
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    letterSpacing: 0.8,
+    letterSpacing: 0,
   },
   ltpValue: {
     color: "#10B981",
