@@ -13,6 +13,7 @@ import stocksRouter from "./stocks";
 import chatRouter from "./chat";
 import skipTodayRouter from "./skipToday";
 import marketRouter from "./market";
+import communityRouter from "./community";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(quotesRouter);
 router.use(stocksRouter);
 router.use(chatRouter);
 router.use(marketRouter);
+router.use(communityRouter);
 
 export default router;

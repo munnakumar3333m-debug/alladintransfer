@@ -5,6 +5,18 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface CommunityMessage {
+  id: number;
+  userId: number;
+  userName: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface CommunityPostBody {
+  message: string;
+}
+
 export type LtpResponsePrices = {[key: string]: number};
 
 export interface LtpResponse {

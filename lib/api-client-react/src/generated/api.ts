@@ -23,6 +23,8 @@ import type {
   AuthResponse,
   ChatConversation,
   ChatMessage,
+  CommunityMessage,
+  CommunityPostBody,
   CreateRecommendationRequest,
   DailyQuote,
   DashboardStats,
@@ -2067,6 +2069,154 @@ export const useMarkConversationRead = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getMarkConversationReadMutationOptions(options));
+    }
+
+export const getGetCommunityMessagesUrl = () => {
+
+
+
+
+  return `/api/community`
+}
+
+/**
+ * @summary Get today's community messages
+ */
+export const getCommunityMessages = async ( options?: RequestInit): Promise<CommunityMessage[]> => {
+
+  return customFetch<CommunityMessage[]>(getGetCommunityMessagesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommunityMessagesQueryKey = () => {
+    return [
+    `/api/community`
+    ] as const;
+    }
+
+
+export const getGetCommunityMessagesQueryOptions = <TData = Awaited<ReturnType<typeof getCommunityMessages>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommunityMessagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityMessages>>> = ({ signal }) => getCommunityMessages({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommunityMessages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCommunityMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof getCommunityMessages>>>
+export type GetCommunityMessagesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get today's community messages
+ */
+
+export function useGetCommunityMessages<TData = Awaited<ReturnType<typeof getCommunityMessages>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCommunityMessagesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getPostCommunityMessageUrl = () => {
+
+
+
+
+  return `/api/community`
+}
+
+/**
+ * @summary Post a community message
+ */
+export const postCommunityMessage = async (communityPostBody: CommunityPostBody, options?: RequestInit): Promise<CommunityMessage> => {
+
+  return customFetch<CommunityMessage>(getPostCommunityMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      communityPostBody,)
+  }
+);}
+
+
+
+
+export const getPostCommunityMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCommunityMessage>>, TError,{data: BodyType<CommunityPostBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postCommunityMessage>>, TError,{data: BodyType<CommunityPostBody>}, TContext> => {
+
+const mutationKey = ['postCommunityMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postCommunityMessage>>, {data: BodyType<CommunityPostBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postCommunityMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostCommunityMessageMutationResult = NonNullable<Awaited<ReturnType<typeof postCommunityMessage>>>
+    export type PostCommunityMessageMutationBody = BodyType<CommunityPostBody>
+    export type PostCommunityMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Post a community message
+ */
+export const usePostCommunityMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCommunityMessage>>, TError,{data: BodyType<CommunityPostBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof postCommunityMessage>>,
+        TError,
+        {data: BodyType<CommunityPostBody>},
+        TContext
+      > => {
+      return useMutation(getPostCommunityMessageMutationOptions(options));
     }
 
 export const getGetMarketLtpUrl = (params: GetMarketLtpParams,) => {

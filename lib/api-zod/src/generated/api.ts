@@ -544,6 +544,27 @@ export const MarkConversationReadParams = zod.object({
 
 
 /**
+ * @summary Get today's community messages
+ */
+export const GetCommunityMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetCommunityMessagesResponse = zod.array(GetCommunityMessagesResponseItem)
+
+
+/**
+ * @summary Post a community message
+ */
+export const PostCommunityMessageBody = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get live LTP for one or more NSE symbols
  */
 export const GetMarketLtpQueryParams = zod.object({
