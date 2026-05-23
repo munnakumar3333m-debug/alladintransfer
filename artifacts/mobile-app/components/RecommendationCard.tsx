@@ -172,7 +172,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
           <View style={styles.ltpWrap}>
             <View style={styles.liveDot} />
             <View>
-              <Text style={styles.ltpLabel}>LIVE</Text>
+              <Text style={styles.ltpLabel}>Current Price</Text>
               <Text style={styles.ltpValue}>₹{ltp.toFixed(2)}</Text>
             </View>
           </View>

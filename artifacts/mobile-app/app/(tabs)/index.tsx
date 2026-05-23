@@ -127,7 +127,7 @@ function MarketStatusBanner({ status }: { status: MarketState }) {
             <Text style={[mcStyles.title, { color: "#fff" }]}>Execute Your Trades Now!</Text>
             <View style={mcStyles.openChip}>
               <View style={mcStyles.openChipDot} />
-              <Text style={mcStyles.openChipText}>LIVE</Text>
+              <Text style={mcStyles.openChipText}>Current Price</Text>
             </View>
           </View>
           <Text style={[mcStyles.body, { color: "rgba(255,255,255,0.75)" }]}>
