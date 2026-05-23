@@ -153,7 +153,7 @@ function MarketStatusBanner({ status }: { status: MarketState }) {
       bg: "#818CF8",
       title: "Enjoy the Weekend! 🎉",
       body: "Markets are closed — take a well-deserved break. We'll be back with high-quality Monday picks before 9:00 AM IST.",
-      chip: "Signals Monday by 9 AM",
+      chip: "Signals on Monday",
     },
     "pre-market": {
       icon: "zap" as const,
