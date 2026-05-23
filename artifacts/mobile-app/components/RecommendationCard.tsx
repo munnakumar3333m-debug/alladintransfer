@@ -30,12 +30,19 @@ function slColor(val: string | number | null | undefined, fallback: string): str
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   active:         { label: "Active",        color: "#F59E0B", bg: "#F59E0B18" },
+  executed:       { label: "Executed",      color: "#818CF8", bg: "#818CF818" },
   hold:           { label: "Hold",          color: "#F59E0B", bg: "#F59E0B18" },
   target_hit:     { label: "Target Hit",    color: "#10B981", bg: "#10B98118" },
   stop_loss_hit:  { label: "Stop Loss",     color: "#EF4444", bg: "#EF444418" },
   partial_profit: { label: "Partial Exit",  color: "#10B981", bg: "#10B98118" },
   closed:         { label: "Closed",        color: "#64748B", bg: "#64748B18" },
 };
+
+function isPast915IST(): boolean {
+  const now = new Date();
+  const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+  return istMinutes >= 555;
+}
 
 
 export function RecommendationCard({ rec, onPress }: Props) {
@@ -49,7 +56,8 @@ export function RecommendationCard({ rec, onPress }: Props) {
   const signalColors  = isBuy ? (["#10B981", "#059669"] as const) : (["#EF4444", "#DC2626"] as const);
   const cardBorder    = signalColor + "30";
 
-  const status = STATUS_META[rec.status] ?? STATUS_META.active;
+  const effectiveStatus = rec.status === "active" && isPast915IST() ? "executed" : rec.status;
+  const status = STATUS_META[effectiveStatus] ?? STATUS_META.active;
 
   return (
     <TouchableOpacity
