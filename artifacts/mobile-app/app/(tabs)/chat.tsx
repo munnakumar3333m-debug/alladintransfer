@@ -170,7 +170,7 @@ export default function CommunityScreen() {
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>Community</Text>
           <View style={styles.onlineRow}>
             <View style={styles.onlineDot} />
-            <Text style={styles.onlineText}>{FAKE_MEMBER_COUNT.toLocaleString("en-IN")} members active</Text>
+            <Text style={styles.onlineText}>Live</Text>
           </View>
         </View>
       </View>
