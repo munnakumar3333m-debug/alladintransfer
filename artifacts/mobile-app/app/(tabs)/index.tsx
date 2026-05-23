@@ -324,6 +324,7 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
     const { min, max } = traderRange();
     return randomBetween(min, max);
   });
+  const lastDelta = useRef(1); // track last direction so next move tends opposite
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -342,9 +343,12 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
     Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: false }).start(() => {
       setCount((prev) => {
         const { min, max } = traderRange();
-        // If current count drifted outside the new time range, snap it in gently
         const clamped = Math.max(min, Math.min(max, prev));
-        const delta = randomBetween(20, 120) * (Math.random() > 0.45 ? 1 : -1);
+        // 70% chance to reverse last direction → natural oscillation
+        const reverses = Math.random() < 0.70;
+        const dir = reverses ? -lastDelta.current : lastDelta.current;
+        const delta = randomBetween(30, 130) * dir;
+        lastDelta.current = delta > 0 ? 1 : -1;
         return Math.max(min, Math.min(max, clamped + delta));
       });
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start();
