@@ -541,13 +541,6 @@ export default function HomeScreen() {
                   {isSkipped ? "Unskip" : "Skip Today"}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.historyBtn, { borderColor: colors.border }]}
-                onPress={() => router.push("/(tabs)/history")}
-              >
-                <Text style={[styles.historyBtnText, { color: colors.mutedForeground }]}>History</Text>
-                <Feather name="arrow-right" size={12} color={colors.mutedForeground} />
-              </TouchableOpacity>
             </View>
           </View>
           {isSkipped && (
@@ -600,13 +593,6 @@ export default function HomeScreen() {
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity
-                style={[styles.emptyBtn, { borderColor: colors.primary + "50" }]}
-                onPress={() => router.push("/(tabs)/history")}
-              >
-                <Feather name="clock" size={13} color={colors.primary} />
-                <Text style={[styles.emptyBtnText, { color: colors.primary }]}>View past picks</Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
