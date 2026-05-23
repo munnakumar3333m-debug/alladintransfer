@@ -295,11 +295,15 @@ function randomBetween(min: number, max: number) {
 
 function naturalNext(current: number): number {
   const delta = randomBetween(30, 150) * (Math.random() > 0.45 ? 1 : -1);
-  return Math.max(200, Math.min(3000, current + delta));
+  return Math.max(2000, Math.min(7000, current + delta));
+}
+
+function formatK(n: number): string {
+  return (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
 }
 
 function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
-  const [count, setCount] = useState(() => randomBetween(800, 2200));
+  const [count, setCount] = useState(() => randomBetween(2000, 7000));
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -322,7 +326,7 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
   }, [fadeAnim]);
 
   useEffect(() => {
-    const schedule = (): ReturnType<typeof setTimeout> => setTimeout(() => { tick(); schedule(); }, randomBetween(5000, 10000));
+    const schedule = (): ReturnType<typeof setTimeout> => setTimeout(() => { tick(); schedule(); }, randomBetween(18000, 24000));
     const id = schedule();
     return () => clearTimeout(id);
   }, [tick]);
@@ -332,7 +336,7 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
       <Animated.View style={[styles.widgetInner, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.dot, { opacity: pulseAnim }]} />
         <Text style={styles.widgetText} numberOfLines={1}>
-          {count.toLocaleString("en-IN")} traders online
+          {formatK(count)} traders online
         </Text>
       </Animated.View>
     </View>
