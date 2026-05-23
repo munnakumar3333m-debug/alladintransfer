@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { getLtpBatch, getSymbolToken, getCandleData, isConfigured } from "./angelone";
 import { logger } from "./logger";
 import { sendPushToUsers } from "./pushNotifications";
+import { postCelebrationMessages } from "./celebrationMessages";
 
 const TARGET_PCT = 2.0;
 
@@ -150,6 +151,8 @@ export async function checkTargetsNow(): Promise<void> {
         },
         "all"
       ).catch(() => {});
+
+      postCelebrationMessages(symbol, pnlPercent).catch(() => {});
     }
   } catch (err) {
     logger.error({ err }, "Market monitor: checkTargetsNow error");
