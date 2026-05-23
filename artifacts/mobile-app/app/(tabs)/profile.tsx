@@ -257,7 +257,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.version, { color: colors.mutedForeground }]}>ALLADIN  v1.0{"\n"}Powered by Blackrock India</Text>
+      <Text style={[styles.version, { color: colors.mutedForeground }]}>ALLADIN  v1.0{"\n"}Developed by TRADEQ securities</Text>
     </ScrollView>
   );
 }

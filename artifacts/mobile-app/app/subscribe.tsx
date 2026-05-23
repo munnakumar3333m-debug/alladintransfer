@@ -126,7 +126,7 @@ export default function SubscribeScreen() {
                 <Text style={styles.statusPillText}>{badge}</Text>
               </View>
               <Text style={styles.heroTitle}>Alladin V1.0 Premium</Text>
-              <Text style={styles.heroTagline}>Powered by Blackrock India</Text>
+              <Text style={styles.heroTagline}>Developed by TRADEQ securities</Text>
             </View>
             <View style={styles.priceBlock}>
               <Text style={styles.priceCurrency}>₹</Text>
