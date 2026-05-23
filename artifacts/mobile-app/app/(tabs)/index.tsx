@@ -293,17 +293,37 @@ function randomBetween(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function naturalNext(current: number): number {
-  const delta = randomBetween(30, 150) * (Math.random() > 0.45 ? 1 : -1);
-  return Math.max(2000, Math.min(7000, current + delta));
+function istHM(): number {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  return ist.getHours() * 100 + ist.getMinutes();
 }
 
-function formatK(n: number): string {
-  return (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+function traderRange(): { min: number; max: number } {
+  const hm = istHM();
+  if (hm >= 850 && hm < 1500)  return { min: 2000, max: 7000 };  // peak market hours
+  if (hm >= 1500 && hm < 1600) return { min: 1000, max: 2800 };  // just after close
+  if (hm >= 1600 && hm < 1700) return { min: 500,  max: 1200 };  // winding down
+  if (hm >= 1700 && hm < 1900) return { min: 270,  max: 650 };   // evening
+  return { min: 100, max: 270 };                                   // night
+}
+
+function naturalNext(current: number): number {
+  const { min, max } = traderRange();
+  const delta = randomBetween(20, 120) * (Math.random() > 0.45 ? 1 : -1);
+  return Math.max(min, Math.min(max, current + delta));
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  return String(n);
 }
 
 function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
-  const [count, setCount] = useState(() => randomBetween(2000, 7000));
+  const [count, setCount] = useState(() => {
+    const { min, max } = traderRange();
+    return randomBetween(min, max);
+  });
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -320,7 +340,13 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
 
   const tick = useCallback(() => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: false }).start(() => {
-      setCount((prev) => naturalNext(prev));
+      setCount((prev) => {
+        const { min, max } = traderRange();
+        // If current count drifted outside the new time range, snap it in gently
+        const clamped = Math.max(min, Math.min(max, prev));
+        const delta = randomBetween(20, 120) * (Math.random() > 0.45 ? 1 : -1);
+        return Math.max(min, Math.min(max, clamped + delta));
+      });
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start();
     });
   }, [fadeAnim]);
@@ -336,7 +362,7 @@ function TradersOnlineWidget({ bottomOffset }: { bottomOffset: number }) {
       <Animated.View style={[styles.widgetInner, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.dot, { opacity: pulseAnim }]} />
         <Text style={styles.widgetText} numberOfLines={1}>
-          {formatK(count)} traders online
+          {formatCount(count)} traders online
         </Text>
       </Animated.View>
     </View>
