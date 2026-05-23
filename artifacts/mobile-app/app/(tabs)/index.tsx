@@ -388,12 +388,12 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const { data: user } = useGetMe();
-  const { data: todayRecs, isLoading: recsLoading, refetch: refetchRecs } = useGetTodayRecommendations();
-  const { data: stats, refetch: refetchStats } = useGetDashboardStats();
-  const { data: sub } = useGetSubscriptionStatus();
-  const { data: quote, refetch: refetchQuote } = useGetTodayQuote();
-  const { data: skipStatus, refetch: refetchSkip } = useGetSkipToday();
+  const { data: user } = useGetMe({ query: { refetchInterval: 5 * 60 * 1000 } });
+  const { data: todayRecs, isLoading: recsLoading, refetch: refetchRecs } = useGetTodayRecommendations({ query: { refetchInterval: 30 * 1000 } });
+  const { data: stats, refetch: refetchStats } = useGetDashboardStats({ query: { refetchInterval: 30 * 1000 } });
+  const { data: sub } = useGetSubscriptionStatus({ query: { refetchInterval: 2 * 60 * 1000 } });
+  const { data: quote, refetch: refetchQuote } = useGetTodayQuote({ query: { refetchInterval: 2 * 60 * 1000 } });
+  const { data: skipStatus, refetch: refetchSkip } = useGetSkipToday({ query: { refetchInterval: 30 * 1000 } });
   const { mutate: toggleSkip, isPending: skipPending } = useSkipToday();
 
   const isSkipped = skipStatus?.skipped ?? false;

@@ -35,7 +35,7 @@ export default function RecommendationDetailScreen() {
 
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
-  const { data: rec, isLoading } = useGetRecommendation(Number(id));
+  const { data: rec, isLoading } = useGetRecommendation(Number(id), { query: { refetchInterval: 30 * 1000 } });
   const screenshots = useMemo(() => {
     const list = rec?.screenshots?.length ? rec.screenshots : rec?.screenshotUrl ? [rec.screenshotUrl] : [];
     return list.filter(Boolean);

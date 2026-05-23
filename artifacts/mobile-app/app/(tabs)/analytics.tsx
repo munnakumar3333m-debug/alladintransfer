@@ -269,8 +269,8 @@ export default function AnalyticsScreen() {
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
 
-  const { data: stats, isLoading: statsLoading, isError: statsError } = useGetDashboardStats();
-  const { data: performance, isLoading: perfLoading, isError: perfError } = useGetPerformanceData();
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useGetDashboardStats({ query: { refetchInterval: 2 * 60 * 1000 } });
+  const { data: performance, isLoading: perfLoading, isError: perfError } = useGetPerformanceData({ query: { refetchInterval: 2 * 60 * 1000 } });
 
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [showWinRate, setShowWinRate] = useState(false);

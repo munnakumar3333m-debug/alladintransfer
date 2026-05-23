@@ -37,12 +37,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { logout, token } = useAuth();
 
-  const { data: user, isError: userError } = useGetMe();
-  const { data: sub, isError: subError } = useGetSubscriptionStatus();
+  const { data: user, isError: userError } = useGetMe({ query: { refetchInterval: 2 * 60 * 1000 } });
+  const { data: sub, isError: subError } = useGetSubscriptionStatus({ query: { refetchInterval: 2 * 60 * 1000 } });
 
   const { data: referral } = useQuery<ReferralStats>({
     queryKey: ["referral-code"],
     enabled: !!token,
+    refetchInterval: 5 * 60 * 1000,
     queryFn: async () => {
       const res = await fetch("/api/referrals/my-code", {
         headers: { Authorization: `Bearer ${token}` },

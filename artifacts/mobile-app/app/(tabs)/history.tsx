@@ -25,7 +25,7 @@ export default function HistoryScreen() {
   const { data, isLoading, refetch } = useListRecommendations({
     page,
     limit: 20,
-  });
+  }, { query: { refetchInterval: 60 * 1000 } });
 
   const recs = data?.data ?? [];
 
