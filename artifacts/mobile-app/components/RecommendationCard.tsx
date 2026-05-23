@@ -129,7 +129,7 @@ export function RecommendationCard({ rec, onPress }: Props) {
 
       {/* ── Price grid ──────────────────────────────────── */}
       <View style={[styles.priceGrid, { backgroundColor: colors.background, borderColor: colors.border }]}>
-        <PriceCell label="Opening Price"   value={fmtPrice(rec.buyPrice)}    valueColor={colors.foreground} />
+        <PriceCell label="ENTRY"            value={fmtPrice(rec.buyPrice)}    valueColor={colors.foreground} />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
         <PriceCell label="Target"          value={fmtPrice(rec.targetPrice)} valueColor="#10B981" />
         <View style={[styles.priceDivider, { backgroundColor: colors.border }]} />
