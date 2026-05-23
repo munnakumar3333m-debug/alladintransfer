@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import {
   useGetMe,
   useGetSubscriptionStatus,
+  customFetch,
 } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -35,22 +36,15 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { logout, token } = useAuth();
+  const { logout } = useAuth();
 
   const { data: user, isError: userError } = useGetMe({ query: { refetchInterval: 2 * 60 * 1000 } });
   const { data: sub, isError: subError } = useGetSubscriptionStatus({ query: { refetchInterval: 2 * 60 * 1000 } });
 
   const { data: referral } = useQuery<ReferralStats>({
     queryKey: ["referral-code"],
-    enabled: !!token,
     refetchInterval: 5 * 60 * 1000,
-    queryFn: async () => {
-      const res = await fetch("/api/referrals/my-code", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch referral code");
-      return res.json();
-    },
+    queryFn: () => customFetch<ReferralStats>("/api/referrals/my-code"),
   });
 
   const handleCall = () => {

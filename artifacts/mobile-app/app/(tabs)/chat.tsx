@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
-import { useAuth } from "@/contexts/AuthContext";
+import { customFetch, useGetMe } from "@workspace/api-client-react";
 import {
   generateFakeMessages,
   visibleFakeMessages,
@@ -49,7 +49,7 @@ const FAKE_MEMBER_COUNT = 4247;
 
 export default function CommunityScreen() {
   const colors = useColors();
-  const { user, token } = useAuth();
+  const { data: user } = useGetMe();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [realMessages, setRealMessages] = useState<RealMessage[]>([]);
@@ -60,15 +60,10 @@ export default function CommunityScreen() {
 
   const fetchReal = useCallback(async () => {
     try {
-      const res = await fetch("/api/community", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = (await res.json()) as RealMessage[];
-        setRealMessages(data);
-      }
+      const data = await customFetch<RealMessage[]>("/api/community");
+      setRealMessages(data);
     } catch { /* silent */ }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     const fakes = generateFakeMessages(dateStr, [], 180);
@@ -105,19 +100,12 @@ export default function CommunityScreen() {
     setSending(true);
     setText("");
     try {
-      const res = await fetch("/api/community", {
+      const msg = await customFetch<RealMessage>("/api/community", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ message: trimmed }),
       });
-      if (res.ok) {
-        const msg = (await res.json()) as RealMessage;
-        setRealMessages((prev) => [...prev, msg]);
-        setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 150);
-      }
+      setRealMessages((prev) => [...prev, msg]);
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 150);
     } catch { /* silent */ } finally {
       setSending(false);
     }
