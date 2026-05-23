@@ -190,7 +190,7 @@ export default function CommunityScreen() {
             <View style={styles.empty}>
               <Feather name="message-circle" size={44} color={colors.mutedForeground} />
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Community chat starts at 9 AM</Text>
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>During market hours members discuss picks & share results</Text>
+              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>{"Users with loose talk, vulgarity or offensive words will be get banned immediately from our side.\nHere we only talk about markets.\n— TEAM ALLADIN"}</Text>
             </View>
           }
         />
