@@ -145,6 +145,71 @@ async function getAuth(): Promise<AuthTokens> {
   return cachedAuth;
 }
 
+export interface LtpResult {
+  symbol: string;
+  ltp: number;
+  source: "angelone" | "yahoo";
+}
+
+export async function getLtpBatch(symbols: string[]): Promise<LtpResult[]> {
+  if (!symbols.length) return [];
+
+  /* ── Angel One path ── */
+  if (isConfigured()) {
+    await loadInstruments();
+    const auth = await getAuth();
+
+    const tokenMap: Record<string, string> = {};
+    for (const sym of symbols) {
+      const tok = nseMap!.get(sym.toUpperCase());
+      if (tok) tokenMap[tok] = sym.toUpperCase();
+    }
+
+    const tokens = Object.keys(tokenMap);
+    if (tokens.length) {
+      const res = await fetch(`${BASE}/rest/secure/angelbroking/market/v1/quote`, {
+        method: "POST",
+        headers: headers({
+          Authorization: `Bearer ${auth.jwtToken}`,
+          "X-ClientCode": process.env.ANGEL_CLIENT_CODE!,
+          "X-FeedToken": auth.feedToken,
+        }),
+        body: JSON.stringify({ mode: "LTP", exchangeTokens: { NSE: tokens } }),
+      });
+      const data = (await res.json()) as {
+        status: boolean;
+        message: string;
+        data?: { fetched: Array<{ tradingSymbol: string; symbolToken: string; ltp: number }> };
+      };
+      if (data.status && data.data?.fetched?.length) {
+        return data.data.fetched.map((f) => {
+          const sym = tokenMap[f.symbolToken] ?? f.tradingSymbol.replace(/-EQ$/i, "").toUpperCase();
+          return { symbol: sym, ltp: f.ltp, source: "angelone" as const };
+        });
+      }
+    }
+  }
+
+  /* ── Yahoo Finance fallback ── */
+  const results: LtpResult[] = [];
+  await Promise.all(
+    symbols.map(async (sym) => {
+      try {
+        const yahooSym = `${sym.toUpperCase()}.NS`;
+        const r = await fetch(
+          `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?interval=1m&range=1d`,
+          { headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" } }
+        );
+        if (!r.ok) return;
+        const j = (await r.json()) as { chart: { result: Array<{ meta: { regularMarketPrice: number } }> | null } };
+        const price = j.chart.result?.[0]?.meta?.regularMarketPrice;
+        if (price) results.push({ symbol: sym.toUpperCase(), ltp: price, source: "yahoo" });
+      } catch { /* skip */ }
+    })
+  );
+  return results;
+}
+
 export type CandleRow = [string, number, number, number, number, number];
 
 export async function getCandleData(

@@ -1,10 +1,50 @@
 import { Feather } from "@expo/vector-icons";
 import type { Recommendation } from "@workspace/api-client-react";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+
+function isMarketOpen(): boolean {
+  const now = new Date();
+  const ist = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+  return ist >= 555 && ist <= 930;
+}
+
+async function fetchLtp(symbol: string): Promise<number | null> {
+  try {
+    const res = await fetch(`/api/market/ltp?symbols=${encodeURIComponent(symbol)}`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { prices: Record<string, number> };
+    return data.prices[symbol.toUpperCase()] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function useLivePrice(symbol: string) {
+  const [ltp, setLtp] = useState<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const price = await fetchLtp(symbol);
+      if (alive) setLtp(price);
+    };
+    load();
+    timerRef.current = setInterval(() => {
+      if (isMarketOpen()) load();
+    }, 30_000);
+    return () => {
+      alive = false;
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [symbol]);
+
+  return ltp;
+}
 
 interface Props {
   rec: Recommendation;
@@ -47,6 +87,7 @@ function isPast915IST(): boolean {
 
 export function RecommendationCard({ rec, onPress }: Props) {
   const colors = useColors();
+  const ltp = useLivePrice(rec.nseSymbol);
 
   const pnl = rec.pnlPercent ? parseFloat(String(rec.pnlPercent)) : null;
   const isPositive = pnl !== null && pnl >= 0;
@@ -125,6 +166,17 @@ export function RecommendationCard({ rec, onPress }: Props) {
             {rec.stockName}
           </Text>
         </View>
+
+        {/* Live price */}
+        {ltp != null && (
+          <View style={styles.ltpWrap}>
+            <View style={styles.liveDot} />
+            <View>
+              <Text style={styles.ltpLabel}>LIVE</Text>
+              <Text style={styles.ltpValue}>₹{ltp.toFixed(2)}</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* ── Price grid ──────────────────────────────────── */}
@@ -269,6 +321,37 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   symbolWrap: { flex: 1, gap: 2 },
+  ltpWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#10B98112",
+    borderWidth: 1,
+    borderColor: "#10B98130",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginLeft: 8,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#10B981",
+  },
+  ltpLabel: {
+    color: "#10B981",
+    fontSize: 9,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.8,
+  },
+  ltpValue: {
+    color: "#10B981",
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
   symbolLine: { flexDirection: "row", alignItems: "center", gap: 7 },
   symbol: {
     fontSize: 21,

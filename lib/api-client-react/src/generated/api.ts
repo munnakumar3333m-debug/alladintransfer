@@ -28,9 +28,11 @@ import type {
   DashboardStats,
   ErrorResponse,
   ForgotPasswordRequest,
+  GetMarketLtpParams,
   HealthStatus,
   ListRecommendationsParams,
   LoginRequest,
+  LtpResponse,
   MessageResponse,
   PerformanceData,
   PostQuoteRequest,
@@ -2066,4 +2068,88 @@ export const useMarkConversationRead = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getMarkConversationReadMutationOptions(options));
     }
+
+export const getGetMarketLtpUrl = (params: GetMarketLtpParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/market/ltp?${stringifiedParams}` : `/api/market/ltp`
+}
+
+/**
+ * @summary Get live LTP for one or more NSE symbols
+ */
+export const getMarketLtp = async (params: GetMarketLtpParams, options?: RequestInit): Promise<LtpResponse> => {
+
+  return customFetch<LtpResponse>(getGetMarketLtpUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMarketLtpQueryKey = (params?: GetMarketLtpParams,) => {
+    return [
+    `/api/market/ltp`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMarketLtpQueryOptions = <TData = Awaited<ReturnType<typeof getMarketLtp>>, TError = ErrorType<void>>(params: GetMarketLtpParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketLtp>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarketLtpQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarketLtp>>> = ({ signal }) => getMarketLtp(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarketLtp>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMarketLtpQueryResult = NonNullable<Awaited<ReturnType<typeof getMarketLtp>>>
+export type GetMarketLtpQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get live LTP for one or more NSE symbols
+ */
+
+export function useGetMarketLtp<TData = Awaited<ReturnType<typeof getMarketLtp>>, TError = ErrorType<void>>(
+ params: GetMarketLtpParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketLtp>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMarketLtpQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

@@ -543,3 +543,16 @@ export const MarkConversationReadParams = zod.object({
 })
 
 
+/**
+ * @summary Get live LTP for one or more NSE symbols
+ */
+export const GetMarketLtpQueryParams = zod.object({
+  "symbols": zod.coerce.string().describe('Comma-separated NSE symbols (e.g. RELIANCE,TCS)')
+})
+
+export const GetMarketLtpResponse = zod.object({
+  "prices": zod.record(zod.string(), zod.number()),
+  "source": zod.string()
+})
+
+

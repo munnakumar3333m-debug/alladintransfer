@@ -612,6 +612,30 @@ paths:
         "200":
           description: Marked as read
 
+  /market/ltp:
+    get:
+      operationId: getMarketLtp
+      tags: [market]
+      summary: Get live LTP for one or more NSE symbols
+      parameters:
+        - name: symbols
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated NSE symbols (e.g. RELIANCE,TCS)
+      responses:
+        "200":
+          description: Live prices keyed by symbol
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LtpResponse"
+        "400":
+          description: Missing symbols param
+        "500":
+          description: LTP fetch failed
+
 components:
   securitySchemes:
     bearerAuth:
@@ -619,6 +643,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    LtpResponse:
+      type: object
+      required: [prices, source]
+      properties:
+        prices:
+          type: object
+          additionalProperties:
+            type: number
+        source:
+          type: string
     HealthStatus:
       type: object
       required: [status]

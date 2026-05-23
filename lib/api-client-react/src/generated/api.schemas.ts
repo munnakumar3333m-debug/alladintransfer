@@ -5,6 +5,13 @@
  * AlphaTrade Pro API specification
  * OpenAPI spec version: 0.1.0
  */
+export type LtpResponsePrices = {[key: string]: number};
+
+export interface LtpResponse {
+  prices: LtpResponsePrices;
+  source: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -276,5 +283,12 @@ status?: RecommendationStatus;
 signalType?: SignalType;
 page?: number;
 limit?: number;
+};
+
+export type GetMarketLtpParams = {
+/**
+ * Comma-separated NSE symbols (e.g. RELIANCE,TCS)
+ */
+symbols: string;
 };
 
