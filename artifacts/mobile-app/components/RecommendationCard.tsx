@@ -9,7 +9,7 @@ import { useColors } from "@/hooks/useColors";
 function isMarketOpen(): boolean {
   const now = new Date();
   const ist = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
-  return ist >= 555 && ist <= 930;
+  return ist >= 540 && ist <= 930;
 }
 
 async function fetchLtp(symbol: string): Promise<number | null> {
