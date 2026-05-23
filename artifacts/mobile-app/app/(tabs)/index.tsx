@@ -299,7 +299,15 @@ function istHM(): number {
   return ist.getHours() * 100 + ist.getMinutes();
 }
 
+function istDow(): number {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  return ist.getDay(); // 0=Sun, 6=Sat
+}
+
 function traderRange(): { min: number; max: number } {
+  const dow = istDow();
+  if (dow === 0 || dow === 6) return { min: 40, max: 150 };       // weekend — market closed
   const hm = istHM();
   if (hm >= 850 && hm < 1500)  return { min: 2000, max: 7000 };  // peak market hours
   if (hm >= 1500 && hm < 1600) return { min: 1000, max: 2800 };  // just after close
