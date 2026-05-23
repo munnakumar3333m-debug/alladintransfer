@@ -127,13 +127,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {sub && (sub.subscriptionType === "trial" || sub.subscriptionType === "expired") && (
-        <SubscriptionBanner
-          type={sub.subscriptionType === "expired" ? "expired" : "trial"}
-          daysLeft={(sub.daysRemaining ?? 0) > 0 ? (sub.daysRemaining ?? undefined) : undefined}
-        />
-      )}
-
       <View style={[styles.subCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.subRow}>
           <Text style={[styles.subLabel, { color: colors.mutedForeground }]}>Subscription</Text>
