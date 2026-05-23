@@ -5,8 +5,12 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function TabLayout() {
+  const { isAuthenticated } = useAuth();
+  usePushNotifications(isAuthenticated);
   const colors = useColors();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";

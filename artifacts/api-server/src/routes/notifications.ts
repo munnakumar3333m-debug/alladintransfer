@@ -2,7 +2,9 @@ import { Router, type IRouter } from "express";
 import { db, notificationsTable, deviceTokensTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
+import { sendPushToUsers } from "../lib/pushNotifications";
 import { z } from "zod";
+import { logger } from "../lib/logger";
 
 const GetNotificationHistoryResponse = z.any();
 const RegisterDeviceBody = z.object({
@@ -15,7 +17,6 @@ const SendNotificationBody = z.object({
   targetType: z.enum(["all", "premium", "trial", "specific"]).optional(),
   userIds: z.array(z.number()).optional(),
 });
-import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
@@ -26,11 +27,18 @@ router.post("/notifications/register-device", requireAuth, async (req, res): Pro
     return;
   }
 
-  await db.insert(deviceTokensTable).values({
-    userId: req.user!.id,
-    token: parsed.data.token,
-    platform: parsed.data.platform,
-  });
+  const { token, platform } = parsed.data;
+  const userId = req.user!.id;
+
+  const existing = await db
+    .select()
+    .from(deviceTokensTable)
+    .where(eq(deviceTokensTable.token, token));
+
+  if (existing.length === 0) {
+    await db.insert(deviceTokensTable).values({ userId, token, platform });
+    logger.info({ userId, platform }, "Device token registered");
+  }
 
   res.json({ message: "Device token registered" });
 });
@@ -44,25 +52,9 @@ router.post("/notifications/send", requireAdmin, async (req, res): Promise<void>
 
   const { title, body, targetType = "all", userIds } = parsed.data;
 
-  // Get target users
-  let users;
-  const now = new Date();
-  if (targetType === "specific" && userIds && userIds.length > 0) {
-    users = await db.select().from(usersTable);
-    users = users.filter(u => userIds.includes(u.id));
-  } else if (targetType === "premium") {
-    users = await db.select().from(usersTable);
-    users = users.filter(u => u.subscriptionType === "premium" && u.premiumExpiryDate && u.premiumExpiryDate > now);
-  } else if (targetType === "trial") {
-    users = await db.select().from(usersTable);
-    users = users.filter(u => u.subscriptionType === "trial" && u.trialExpiryDate && u.trialExpiryDate > now);
-  } else {
-    users = await db.select().from(usersTable);
-  }
+  const sentCount = await sendPushToUsers({ title, body }, targetType, userIds);
 
-  const sentCount = users.length;
-
-  logger.info({ title, targetType, sentCount }, "Sending push notification");
+  logger.info({ title, targetType, sentCount }, "Push notification sent");
 
   await db.insert(notificationsTable).values({
     title,
@@ -71,7 +63,7 @@ router.post("/notifications/send", requireAdmin, async (req, res): Promise<void>
     sentCount,
   });
 
-  res.json({ message: `Notification sent to ${sentCount} users` });
+  res.json({ message: `Notification sent to ${sentCount} devices` });
 });
 
 router.get("/notifications/history", requireAdmin, async (_req, res): Promise<void> => {

@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, recommendationsTable, usersTable } from "@workspace/db";
 import { eq, desc, and, sql, or } from "drizzle-orm";
 import { sendWhatsAppNotification } from "../lib/whatsapp";
+import { sendPushToUsers } from "../lib/pushNotifications";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { todayIST } from "../ist";
 import {
@@ -151,6 +152,15 @@ router.post("/recommendations", requireAdmin, async (req, res): Promise<void> =>
 
   const phones = activeUsers.map((u) => u.phone).filter(Boolean) as string[];
   sendWhatsAppNotification(phones, waMsg).catch(() => {});
+
+  sendPushToUsers(
+    {
+      title: `📈 ${signal}: ${symbol}`,
+      body: `Entry ₹${entry} · Target ₹${target} · SL ₹${sl} · Intraday`,
+      data: { type: "recommendation", id: rec.id },
+    },
+    "all"
+  ).catch(() => {});
 });
 
 router.put("/recommendations/:id", requireAdmin, async (req, res): Promise<void> => {

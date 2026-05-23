@@ -55,6 +55,8 @@
   },
   "dependencies": {
     "expo-clipboard": "^8.0.8",
+    "expo-device": "^56.0.4",
+    "expo-notifications": "^56.0.12",
     "react-native-gifted-charts": "^1.4.77",
     "react-native-webview": "^13.16.1"
   }
