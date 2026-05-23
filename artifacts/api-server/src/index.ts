@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { seedDefaultUsers } from "./seed";
+import { startScheduler } from "./lib/scheduler";
 
 const rawPort = process.env["PORT"];
 
@@ -24,5 +25,6 @@ seedDefaultUsers().then(() => {
     }
 
     logger.info({ port }, "Server listening");
+    startScheduler();
   });
 });
