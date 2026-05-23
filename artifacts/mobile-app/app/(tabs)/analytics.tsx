@@ -537,7 +537,7 @@ export default function AnalyticsScreen() {
         style={[styles.fab, { bottom: (Platform.OS === "web" ? 34 : insets.bottom) + 100 }]}
         activeOpacity={0.85}
       >
-        <Feather name="message-circle" size={22} color="#fff" />
+        <Feather name="message-circle" size={16} color="#fff" />
       </TouchableOpacity>
 
       <CommunityModal visible={chatOpen} onClose={() => setChatOpen(false)} />
