@@ -5,7 +5,7 @@ import {
 } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -261,158 +261,6 @@ function WinRateBreakdown({ wins, losses, winRate, onClose }: { wins: number; lo
   );
 }
 
-// ─── Pro: Grade helper ────────────────────────────────────────────────────────
-
-function gradeFromWinRate(wr: number): { grade: string; color: string; label: string } {
-  if (wr >= 70) return { grade: "A+", color: "#10B981", label: "Elite" };
-  if (wr >= 60) return { grade: "A",  color: "#10B981", label: "Strong" };
-  if (wr >= 50) return { grade: "B",  color: "#F59E0B", label: "Solid" };
-  if (wr >= 40) return { grade: "C",  color: "#F97316", label: "Average" };
-  return              { grade: "D",  color: "#EF4444", label: "Weak" };
-}
-
-function computeStreak(bars: MonthBar[]): { count: number; positive: boolean } {
-  if (!bars.length) return { count: 0, positive: true };
-  const rev = [...bars].reverse();
-  const positive = (rev[0]?.pnl ?? 0) >= 0;
-  let count = 0;
-  for (const b of rev) {
-    if ((b.pnl >= 0) === positive) count++;
-    else break;
-  }
-  return { count, positive };
-}
-
-// ─── Pro: Signal Accuracy Card ───────────────────────────────────────────────
-
-function SignalAccuracyCard({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
-  const colors = useColors();
-  const { grade, color, label } = gradeFromWinRate(winRate);
-
-  return (
-    <View style={[proStyles.accuracyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      {/* Header badge */}
-      <View style={proStyles.accuracyHeader}>
-        <View style={[proStyles.liveDot, { backgroundColor: color }]} />
-        <Text style={[proStyles.accuracyHeaderText, { color: colors.mutedForeground }]}>SIGNAL ACCURACY</Text>
-        <View style={proStyles.headerSpacer} />
-        <Feather name="shield" size={13} color={color} />
-        <Text style={[proStyles.proTag, { color: color, borderColor: color + "50", backgroundColor: color + "12" }]}>{"PRO"}</Text>
-      </View>
-
-      {/* Ring + stats */}
-      <View style={proStyles.accuracyBody}>
-        {/* Outer glow ring */}
-        <View style={[proStyles.ringOuter, { borderColor: color + "22" }]}>
-          <View style={[proStyles.ringInner, { borderColor: color }]}>
-            <Text style={[proStyles.ringValue, { color }]}>{winRate.toFixed(1)}%</Text>
-            <Text style={[proStyles.ringLabel, { color: colors.mutedForeground }]}>win rate</Text>
-          </View>
-        </View>
-
-        {/* Right side */}
-        <View style={proStyles.accuracyRight}>
-          <View style={[proStyles.gradeBadge, { backgroundColor: color + "15", borderColor: color + "40" }]}>
-            <Text style={[proStyles.gradeText, { color }]}>{grade}</Text>
-            <Text style={[proStyles.gradeSub, { color }]}>{label}</Text>
-          </View>
-
-          {[
-            { icon: "check-circle" as const, label: `${wins} wins`,   color: colors.positive },
-            { icon: "x-circle"     as const, label: `${losses} losses`, color: colors.negative },
-            { icon: "layers"       as const, label: `${wins + losses} total`, color: colors.mutedForeground },
-          ].map((r) => (
-            <View key={r.label} style={proStyles.accuracyStatRow}>
-              <Feather name={r.icon} size={12} color={r.color} />
-              <Text style={[proStyles.accuracyStatText, { color: colors.foreground }]}>{r.label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// ─── Pro: Performance Scorecard ──────────────────────────────────────────────
-
-function PerformanceScorecard({ bars, winRate }: { bars: MonthBar[]; winRate: number }) {
-  const colors = useColors();
-  const { grade, color } = gradeFromWinRate(winRate);
-  const streak = computeStreak(bars);
-  const consistency = bars.length ? (bars.filter((b) => b.pnl > 0).length / bars.length) * 100 : 0;
-  const streakColor = streak.positive ? colors.positive : colors.negative;
-  const consistencyColor = consistency >= 60 ? colors.positive : consistency >= 40 ? "#F59E0B" : colors.negative;
-
-  const cells = [
-    {
-      icon: "star"       as const,
-      label: "Grade",
-      val: grade,
-      sub: gradeFromWinRate(winRate).label,
-      color,
-    },
-    {
-      icon: (streak.positive ? "trending-up" : "trending-down") as const,
-      label: streak.positive ? "Win Streak" : "Loss Streak",
-      val: `${streak.count}mo`,
-      sub: "consecutive",
-      color: streakColor,
-    },
-    {
-      icon: "shield" as const,
-      label: "Consistency",
-      val: `${consistency.toFixed(0)}%`,
-      sub: "profit months",
-      color: consistencyColor,
-    },
-  ];
-
-  return (
-    <View style={proStyles.scorecardRow}>
-      {cells.map((c) => (
-        <View key={c.label} style={[proStyles.scorecardCell, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[proStyles.scorecardIcon, { backgroundColor: c.color + "18" }]}>
-            <Feather name={c.icon} size={13} color={c.color} />
-          </View>
-          <Text style={[proStyles.scorecardVal, { color: c.color }]}>{c.val}</Text>
-          <Text style={[proStyles.scorecardLabel, { color: colors.foreground }]}>{c.label}</Text>
-          <Text style={[proStyles.scorecardSub, { color: colors.mutedForeground }]}>{c.sub}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-// ─── Pro: Insights Strip ─────────────────────────────────────────────────────
-
-function InsightsStrip({ bars, avgPnl, bestMonth }: { bars: MonthBar[]; avgPnl: number; bestMonth: MonthBar | null }) {
-  const colors = useColors();
-  const compound = bars.reduce((acc, b) => acc * (1 + b.pnl / 100), 1) - 1;
-  const compoundPct = compound * 100;
-
-  const items = [
-    { icon: "database"     as const, text: `${bars.length} months of data`,  color: colors.primary },
-    ...(bestMonth ? [{ icon: "award" as const, text: `Best: ${bestMonth.label} '${bestMonth.year.slice(2)} at ${fmtPct(bestMonth.pnl)}`, color: colors.positive }] : []),
-    { icon: "percent"      as const, text: `Avg ${fmtPct(avgPnl)} / month`,  color: avgPnl >= 0 ? colors.positive : colors.negative },
-    { icon: "activity"     as const, text: `Compounded: ${fmtPct(compoundPct)}`, color: compoundPct >= 0 ? colors.positive : colors.negative },
-  ];
-
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={proStyles.insightsScroll}
-    >
-      {items.map((ins, i) => (
-        <View key={i} style={[proStyles.insightChip, { backgroundColor: ins.color + "14", borderColor: ins.color + "35" }]}>
-          <Feather name={ins.icon} size={11} color={ins.color} />
-          <Text style={[proStyles.insightText, { color: ins.color }]}>{ins.text}</Text>
-        </View>
-      ))}
-    </ScrollView>
-  );
-}
-
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
 export default function AnalyticsScreen() {
@@ -431,9 +279,9 @@ export default function AnalyticsScreen() {
   const isLoading = statsLoading || perfLoading;
   const hasError = statsError || perfError;
 
-  const { bars, maxAbs, bestMonth, worstMonth, avgPnl, positiveMonths, negativeMonths, totalWins, totalLosses } = useMemo(() => {
+  const { bars, maxAbs, bestMonth, worstMonth, avgPnl, positiveMonths, negativeMonths } = useMemo(() => {
     const months = performance?.months ?? [];
-    if (!months.length) return { bars: [], maxAbs: 1, bestMonth: null, worstMonth: null, avgPnl: 0, positiveMonths: 0, negativeMonths: 0, totalWins: 0, totalLosses: 0 };
+    if (!months.length) return { bars: [], maxAbs: 1, bestMonth: null, worstMonth: null, avgPnl: 0, positiveMonths: 0, negativeMonths: 0 };
 
     let prevYear = "";
     const bars: MonthBar[] = months.map((m) => {
@@ -446,8 +294,6 @@ export default function AnalyticsScreen() {
     const maxAbs = Math.max(...bars.map((b) => Math.abs(b.pnl)), 1);
     const sorted = [...bars].sort((a, b) => b.pnl - a.pnl);
     const avgPnl = bars.reduce((s, b) => s + b.pnl, 0) / bars.length;
-    const totalWins   = bars.reduce((s, b) => s + b.wins, 0);
-    const totalLosses = bars.reduce((s, b) => s + b.losses, 0);
 
     return {
       bars,
@@ -457,8 +303,6 @@ export default function AnalyticsScreen() {
       avgPnl,
       positiveMonths: bars.filter((b) => b.pnl > 0).length,
       negativeMonths: bars.filter((b) => b.pnl < 0).length,
-      totalWins,
-      totalLosses,
     };
   }, [performance]);
 
@@ -586,25 +430,6 @@ export default function AnalyticsScreen() {
               )}
             </>
           ) : null}
-
-          {/* ── PRO: Signal Accuracy Card ───────────────────────── */}
-          {stats && bars.length > 0 && (
-            <SignalAccuracyCard
-              winRate={stats.winRate ?? 0}
-              wins={totalWins}
-              losses={totalLosses}
-            />
-          )}
-
-          {/* ── PRO: Performance Scorecard ──────────────────────── */}
-          {bars.length > 0 && (
-            <PerformanceScorecard bars={bars} winRate={stats?.winRate ?? 0} />
-          )}
-
-          {/* ── PRO: Insights Strip ─────────────────────────────── */}
-          {bars.length > 0 && (
-            <InsightsStrip bars={bars} avgPnl={avgPnl} bestMonth={bestMonth} />
-          )}
 
           {/* ── Monthly performance chart ────────────────────────── */}
           <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -1060,159 +885,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     paddingHorizontal: 32,
-  },
-});
-
-// ─── Pro Styles ───────────────────────────────────────────────────────────────
-
-const proStyles = StyleSheet.create({
-  // Signal Accuracy Card
-  accuracyCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 18,
-    gap: 14,
-  },
-  accuracyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  headerSpacer: {
-    flex: 1,
-  },
-  accuracyHeaderText: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 1.2,
-  },
-  proTag: {
-    fontSize: 10,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 0.8,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 999,
-    borderWidth: 1,
-    marginLeft: 6,
-  },
-  accuracyBody: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 20,
-  },
-  ringOuter: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringInner: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringValue: {
-    fontSize: 24,
-    fontFamily: "Inter_700Bold",
-  },
-  ringLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
-  accuracyRight: {
-    flex: 1,
-    gap: 10,
-  },
-  gradeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignSelf: "flex-start",
-  },
-  gradeText: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
-  },
-  gradeSub: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-  },
-  accuracyStatRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-  },
-  accuracyStatText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-  },
-
-  // Performance Scorecard
-  scorecardRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  scorecardCell: {
-    flex: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 13,
-    gap: 4,
-  },
-  scorecardIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  scorecardVal: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-  },
-  scorecardLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-  },
-  scorecardSub: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-  },
-
-  // Insights Strip
-  insightsScroll: {
-    gap: 8,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
-  },
-  insightChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  insightText: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
   },
 });
