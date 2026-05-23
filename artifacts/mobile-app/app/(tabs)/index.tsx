@@ -307,7 +307,7 @@ function istDow(): number {
 
 function traderRange(): { min: number; max: number } {
   const dow = istDow();
-  if (dow === 0 || dow === 6) return { min: 40, max: 150 };       // weekend — market closed
+  if (dow === 0 || dow === 6) return { min: 100, max: 300 };      // weekend — market closed
   const hm = istHM();
   if (hm >= 850 && hm < 1500)  return { min: 2000, max: 7000 };  // peak market hours
   if (hm >= 1500 && hm < 1600) return { min: 1000, max: 2800 };  // just after close
