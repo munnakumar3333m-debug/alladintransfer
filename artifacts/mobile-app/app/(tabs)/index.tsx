@@ -452,7 +452,7 @@ export default function HomeScreen() {
             </View>
             <View>
               <Text style={[styles.appName, { color: colors.foreground }]}>Alladin V1.0</Text>
-              <Text style={[styles.appTagline, { color: colors.primary }]}>Developed by TRADEQ securities</Text>
+              <Text style={[styles.appTagline, { color: colors.primary }]}>Powered by Blackrock India</Text>
             </View>
           </View>
           <View style={styles.appHeaderRight}>
