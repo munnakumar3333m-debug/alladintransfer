@@ -73,7 +73,7 @@ export default function LoginScreen() {
           </View>
           <Text style={[styles.appName, { color: colors.foreground }]}>ALLADIN</Text>
           <Text style={[styles.tagline, { color: colors.primary }]}>
-            Powered by Blackrock India
+            Developed by TRADEQ securities
           </Text>
         </View>
 
