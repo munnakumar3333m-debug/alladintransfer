@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bash vercel-build.sh",
+  "buildCommand": "NODE_ENV=development npx pnpm@9 install --no-frozen-lockfile --strict-peer-dependencies=false && npx pnpm@9 --filter @workspace/admin-dashboard run build && mkdir -p dist && cp -r artifacts/admin-dashboard/dist/public/. dist",
   "outputDirectory": "dist",
   "installCommand": "echo skip",
   "framework": null,
