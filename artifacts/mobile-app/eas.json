@@ -13,7 +13,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_DOMAIN": "987-MANISH8429.replit.app"
+        "EXPO_PUBLIC_DOMAIN": "alphatrade-api.onrender.com"
       }
     },
     "production": {
@@ -21,7 +21,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_DOMAIN": "987-MANISH8429.replit.app"
+        "EXPO_PUBLIC_DOMAIN": "alphatrade-api.onrender.com"
       }
     }
   },

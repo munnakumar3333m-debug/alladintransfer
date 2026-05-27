@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: alphatrade-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: .
+    buildCommand: npm install -g pnpm@9 && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    startCommand: pnpm --filter @workspace/api-server run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ANGEL_API_KEY
+        sync: false
+      - key: ANGEL_CLIENT_CODE
+        sync: false
+      - key: ANGEL_MPIN
+        sync: false
+      - key: ANGEL_TOTP_SECRET
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: PORT
+        value: 8080
+    healthCheckPath: /api/health
