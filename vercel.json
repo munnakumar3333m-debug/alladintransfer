@@ -1,5 +1,5 @@
 {
-  "buildCommand": "NODE_ENV=development npx pnpm@9 install --no-frozen-lockfile && npx pnpm@9 --filter @workspace/admin-dashboard run build && cp -r artifacts/admin-dashboard/dist/public dist",
+  "buildCommand": "NODE_ENV=development npx pnpm@9 install --no-frozen-lockfile --strict-peer-dependencies=false && npx pnpm@9 --filter @workspace/admin-dashboard run build && cp -r artifacts/admin-dashboard/dist/public dist",
   "outputDirectory": "dist",
   "installCommand": "echo skip",
   "framework": null,
