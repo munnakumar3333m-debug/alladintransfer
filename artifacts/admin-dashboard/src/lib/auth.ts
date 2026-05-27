@@ -1,6 +1,11 @@
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 
 const TOKEN_KEY = "admin_auth_token";
+
+const apiUrl = import.meta.env.VITE_API_URL;
+if (apiUrl) {
+  setBaseUrl(apiUrl);
+}
 
 setAuthTokenGetter(() => localStorage.getItem(TOKEN_KEY));
 
