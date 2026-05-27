@@ -24,6 +24,4 @@ services:
         sync: false
       - key: LOG_LEVEL
         value: info
-      - key: PORT
-        value: 8080
     healthCheckPath: /api/health
