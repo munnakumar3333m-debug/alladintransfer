@@ -7,8 +7,8 @@ import { logger } from "./lib/logger";
 const SEED_USERS = [
   {
     name: "Admin",
-    phone: "9999999999",
-    password: "Admin@123",
+    phone: "8429054622",
+    password: "Manish@123",
     isAdmin: true,
     subscriptionType: "premium" as const,
     referralCode: "ADMIN001",
